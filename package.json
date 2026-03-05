@@ -1,0 +1,48 @@
+{
+  "name": "servidor-ema",
+  "version": "1.0.0",
+  "description": "Este é o servidor da Estação Metereológica Atutomática de Três Lagoas",
+  "main": "./src/server.js",
+  "repository": "https://github.com/henryifms/servidor-ema.git",
+  "author": "Henry Thomaz Oliveira Campos, Kleber Rodrigo Penteado",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node .",
+    "dev": "nodemon -L src/server.js",
+    "migrate": "yarn sequelize db:migrate",
+    "migrate:undo": "yarn sequelize db:migrate:undo:all",
+    "migrate:docker": "docker exec -it servidor-ema yarn sequelize db:migrate",
+    "migrate:docker:undo": "docker exec -it servidor-ema npx sequelize db:migrate:undo:all",
+    "lint": "eslint .",
+    "lint:fix": "npx eslint . --fix",
+    "prettier": "npx prettier . --write"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "date-fns": "^4.1.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.19.0",
+    "pg-hstore": "^2.3.4",
+    "redis": "^5.11.0",
+    "sequelize": "^6.37.7",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^1.0.1",
+    "@eslint/markdown": "^7.5.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.4.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1",
+    "sequelize-cli": "^6.6.5",
+    "sucrase": "^3.35.1",
+    "typescript-eslint": "^8.56.1"
+  }
+}

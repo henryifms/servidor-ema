@@ -1,0 +1,9 @@
+node_modules
+package*.lock
+
+.yarn
+yarn.lock
+.pnp.cjs
+.pnp.loader.mjs
+
+.env
