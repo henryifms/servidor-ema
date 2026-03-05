@@ -1,7 +1,10 @@
+import { Request, Response } from "express";
+
 class LeiturasController {
-  index(req, res) {
+  index(req: Request, res: Response) {
     res.json({ message: "ok!" });
   }
 }
 
 export default new LeiturasController();
+
