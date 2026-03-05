@@ -15,7 +15,7 @@ services:
       - .env
 
   migrate:
-    build: .
+    build: servidor-ema
     command: yarn migrate
     depends_on:
       db:
