@@ -2,13 +2,13 @@ import "dotenv/config";
 import { Options } from "sequelize";
 
 function required(name: string): string {
-  const value = process.env[name]
+  const value = process.env[name];
 
   if (!value) {
-    throw new Error(`Missing environment variable: ${name}`)
+    throw new Error(`Missing environment variable: ${name}`);
   }
 
-  return value
+  return value;
 }
 
 const config: Options = {
@@ -22,7 +22,6 @@ const config: Options = {
     timestamps: true,
     underscored: true,
   },
-}
+};
 
 export default config;
-

@@ -10,7 +10,7 @@ interface AtributosUsuario {
 }
 
 class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
-  declare id?: number
+  declare id?: number;
   declare nome: string;
   declare email: string;
   declare password?: string;
@@ -34,9 +34,10 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
 
     this.addHook("beforeSave", async (usuario: Usuario) => {
       if (usuario.password) {
-        usuario.password_hash = await bcrypt.hash(usuario.password, 8)
+        usuario.password_hash = await bcrypt.hash(usuario.password, 8);
       }
     });
+
     return model;
   }
 

@@ -14,7 +14,7 @@ interface Params {
 interface Query {
   nome?: string;
   createdBefore?: string;
-  createdAfter: string;
+  createdAfter?: string;
   updatedBefore?: string;
   updatedAfter?: string;
   sort?: string;
@@ -40,36 +40,45 @@ class EstacoesControllers {
     let order: Order = [];
 
     if (nome) {
-      where.nome = {
-        [Op.iLike]: `%${nome}%`,
+      where = {
+        ...where,
+        nome: {
+          [Op.iLike]: `%${nome}%`,
+        },
       };
     }
 
     if (createdBefore || createdAfter) {
-      where.createdAt = {};
+      const createdAt: Record<symbol, Date> = {};
 
       if (createdBefore) {
-        where.createdAt[Op.lte] = parseISO(createdBefore);
+        createdAt[Op.lte] = parseISO(createdBefore);
       }
       if (createdAfter) {
-        where.createdAt[Op.gte] = parseISO(createdAfter);
+        createdAt[Op.gte] = parseISO(createdAfter);
       }
+
+      where = { ...where, createdAt };
     }
 
     if (updatedBefore || updatedAfter) {
-      where.updatedAt = {};
+      const updatedAt: Record<symbol, Date> = {};
 
       if (updatedBefore) {
-        where.updatedAt[Op.lte] = parseISO(updatedBefore);
+        updatedAt[Op.lte] = parseISO(updatedBefore);
       }
 
       if (updatedAfter) {
-        where.updatedAt[Op.gte] = parseISO(updatedAfter);
+        updatedAt[Op.gte] = parseISO(updatedAfter);
       }
+
+      where = { ...where, updatedAt };
     }
 
     if (sort) {
-      order = sort.split(",").map((item) => item.split(":") as [string, "ASC" | "DESC"]);
+      order = sort
+        .split(",")
+        .map((item) => item.split(":") as [string, "ASC" | "DESC"]);
     }
 
     const estacoes = await Estacao.findAll({
@@ -103,15 +112,8 @@ class EstacoesControllers {
     const schema = Yup.object().shape({
       nome: Yup.string().required(),
       localizacao: Yup.object({
-        longitude: Yup.number()
-        .required()
-        .min(-180)
-        .max(180),
-
-        latitude: Yup.number()
-        .required()
-        .min(-90)
-        .max(90),
+        longitude: Yup.number().required().min(-180).max(180),
+        latitude: Yup.number().required().min(-90).max(90),
       }).required(),
     });
 
@@ -121,7 +123,10 @@ class EstacoesControllers {
       return res.status(400).json({ erro: "Erro ao validar schema." });
     }
 
-    const { nome, localizacao: { longitude, latitude } } = body;
+    const {
+      nome,
+      localizacao: { longitude, latitude },
+    } = body;
 
     const apiKey = crypto.randomBytes(32).toString("hex");
 
@@ -147,13 +152,8 @@ class EstacoesControllers {
     const schema = Yup.object().shape({
       nome: Yup.string(),
       localizacao: Yup.object({
-        longitude: Yup.number()
-        .min(-180)
-        .max(180),
-
-        latitude: Yup.number()
-        .min(-90)
-        .max(90),
+        longitude: Yup.number().min(-180).max(180),
+        latitude: Yup.number().min(-90).max(90),
       }),
     });
 
@@ -194,7 +194,7 @@ class EstacoesControllers {
     }
 
     await estacao.update(updateData);
-    
+
     return res.json(estacao);
   }
 }

@@ -4,6 +4,7 @@ import config from "../config/database.js";
 
 import Estacao from "../app/models/Estacao.js";
 import Leitura from "../app/models/Leitura.js";
+import Usuario from "../app/models/Usuario.js";
 
 class Database {
   public connection: Sequelize;
@@ -14,6 +15,7 @@ class Database {
     this.models = {
       Estacao,
       Leitura,
+      Usuario,
     };
     this.initModels();
     this.runAssociations();

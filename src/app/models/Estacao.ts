@@ -6,15 +6,20 @@ interface Localizacao {
 }
 
 interface AtributosEstacao {
+  id?: number;
   nome: string;
   localizacao: Localizacao;
   api_key: string;
 }
 
 interface CriacaoEstacaoAtributos
-  extends Optional<AtributosEstacao, "api_key"> {}
-  
-class Estacao extends Model<AtributosEstacao, CriacaoEstacaoAtributos> implements AtributosEstacao {
+  extends Optional<AtributosEstacao, "api_key" | "id"> {}
+
+class Estacao
+  extends Model<AtributosEstacao, CriacaoEstacaoAtributos>
+  implements AtributosEstacao
+{
+  declare id?: number;
   declare nome: string;
   declare localizacao: Localizacao;
   declare api_key: string;

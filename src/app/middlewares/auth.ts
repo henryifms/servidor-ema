@@ -10,20 +10,24 @@ export default async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(400).json({ erro: "Token não foi fornecido." });
+    return res.status(401).json({ erro: "Token não foi fornecido." });
   }
+
   if (!authHeader.startsWith("Bearer ")) {
-    return res.status(400).json({ erro: "Token mal formatado." });
+    return res.status(401).json({ erro: "Token mal formatado." });
   }
 
   const [, token] = authHeader.split(" ");
 
+  if (!token) {
+    return res.status(401).json({ erro: "Token não foi fornecido." });
+  }
+
   try {
-    const decoded = jwt.verify(token, auth.secret) as JwtPayload;
+    const decoded = jwt.verify(token, auth.secret) as unknown as JwtPayload;
     req.userId = decoded.id;
     return next();
   } catch (erro) {
-    return res.status(400).json({ erro: "Token invalido." });
+    return res.status(401).json({ erro: "Token inválido." });
   }
 };
-

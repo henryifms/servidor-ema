@@ -7,4 +7,3 @@ class LeiturasController {
 }
 
 export default new LeiturasController();
-

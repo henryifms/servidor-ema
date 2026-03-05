@@ -1,7 +1,7 @@
-
 import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
 interface AtributosLeitura {
+  id?: number;
   estacao_id: number;
   temperatura: number;
   umidade: number;
@@ -12,12 +12,13 @@ interface AtributosLeitura {
 }
 
 interface CriacaoLeituraAtributos
- extends Optional<AtributosLeitura, "data_leitura"> {}
+  extends Optional<AtributosLeitura, "data_leitura" | "id"> {}
 
-class Leitura 
+class Leitura
   extends Model<AtributosLeitura, CriacaoLeituraAtributos>
   implements AtributosLeitura
 {
+  declare id?: number;
   declare estacao_id: number;
   declare temperatura: number;
   declare umidade: number;
@@ -50,7 +51,7 @@ class Leitura
   }
 
   static associate(models: any) {
-    this.belongsTo(models.Estacao, { foreignKey: "estacao_id", as: "estacao" })
+    this.belongsTo(models.Estacao, { foreignKey: "estacao_id", as: "estacao" });
   }
 }
 
