@@ -197,6 +197,17 @@ class EstacoesControllers {
 
     return res.json(estacao);
   }
+  async delete(req: Request<Params>, res: Response) {
+    const estacao = await Estacao.findByPk(req.params.id)
+
+    if (!estacao) {
+      return res.status(404).json();
+    }
+
+    estacao.destroy();
+
+    return res.json();
+  }
 }
 
 export default new EstacoesControllers();
