@@ -1,0 +1,167 @@
+import { Request, Response } from "express";
+import { Order, WhereOptions } from "sequelize";
+import * as Yup from "yup";
+
+import Usuario from "../models/Usuario.js";
+import Estacao from "../models/Estacao.js";
+
+import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
+import construirIntervaloData from "../utils/construirIntervaloData.js";
+import construirOrdenacao from "../utils/construirOrdenacao.js";
+
+interface Params {
+  id: string,
+}
+
+interface Query {
+  nome?: string,
+  email?: string,
+  criadoAntes?: string,
+  criadoDepois?: string,
+  atualizadoAntes?: string,
+  atualizadoDepois?: string,
+  sort?: string,
+  page?: string,
+  limit?: string,
+}
+
+class UsuariosController {
+  async index(req: Request<{}, {}, {}, Query>, res: Response) {
+    const {
+      nome,
+      email,
+      criadoAntes,
+      criadoDepois,
+      atualizadoAntes,
+      atualizadoDepois,
+      sort,
+    } = req.query;
+
+    const page = Number(req.query.page) || 1;
+    const limit = Math.min(Number(req.query.limit) || 25, 100);
+
+    const where: WhereOptions = {};
+
+    adicionarFiltroLike(where, "nome", nome);
+    adicionarFiltroLike(where, "email", email);
+
+    const criado = construirIntervaloData(criadoAntes, criadoDepois);
+    if (criado) (where as any).criado_em = criado;
+
+    const atualizado = construirIntervaloData(atualizadoAntes, atualizadoDepois);
+    if (atualizado) (where as any).atualizado_em = atualizado;
+
+    const usuarios = await Usuario.findAll({
+      where,
+      include: [
+        {
+          model: Estacao,
+          as: "estacoes",
+          attributes: ["id", "nome"],
+        },
+      ],
+      order: construirOrdenacao(sort),
+      limit,
+      offset: (page - 1) * limit,
+    });
+
+    return res.json(usuarios);
+  }
+
+  async show(req: Request<Params>, res: Response) {
+    const usuario = await Usuario.findByPk(req.params.id, {
+      include: [
+        {
+          model: Estacao,
+          as: "estacoes",
+          attributes: ["id", "nome"],
+        },
+      ],
+    });
+
+    if (!usuario) {
+      return res.status(404).json();
+    }
+
+    return res.json(usuario);
+  }
+
+  async create(req: Request, res: Response) {
+    const { body } = req;
+
+    const schema = Yup.object().shape({
+      nome: Yup.string().required(),
+      email: Yup.string().email().required(),
+      password: Yup.string().required().min(8),
+      passwordConfirmation: Yup.string().oneOf(
+        [Yup.ref("password")],
+        "Senha não bate.",
+      ),
+    });
+
+    if (!(await schema.isValid(body))) {
+      return res.status(400).json({ erro: "Erro ao validar schema." });
+    }
+
+    const novoUsuario = await Usuario.create(body);
+
+    const { id, nome, email } = novoUsuario;
+    
+    return res.status(201).json({ id, nome, email });
+  }
+
+  async update(req: Request<Params>, res: Response) {
+    const { body } = req;
+
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario) {
+      return res.status(404).json();
+    }
+
+    const schema = Yup.object().shape({
+      nome: Yup.string(),
+      email: Yup.string(),
+      oldPassword: Yup.string().min(8),
+      password: Yup.string().when("oldPassword", {
+        is: (val) => !!val,
+        then: (schema) => schema.required().min(8),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+      passwordConfirmation: Yup.string().when("password", {
+        is: (val) => !!val,
+        then: (schema) => schema.required().oneOf([Yup.ref("password")],
+        "Senha não bate."),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    });
+
+    if (!(await schema.isValid(body))) {
+      return res.status(400).json({ erro: "Erro ao validar schema." });
+    }
+
+    const { oldPassword } = req.body;
+
+    if (oldPassword && !(await usuario.checkPassword(oldPassword))) {
+      return res.status(401).json({ erro: "Senha do usuário não bate." });
+    }
+
+    const usuarioAtualizado = await usuario.update(req.body);
+
+    return res.json(usuarioAtualizado);
+  }
+
+  async destroy(req: Request<Params>, res: Response) {
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario) {
+      return res.status(404).json();
+    }
+
+    await usuario.destroy();
+
+    return res.json();
+  }
+}
+
+export default new UsuariosController();

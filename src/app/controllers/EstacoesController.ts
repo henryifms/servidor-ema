@@ -7,6 +7,10 @@ import crypto from "crypto";
 import Estacao from "../models/Estacao.js";
 import Leitura from "../models/Leitura.js";
 
+import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
+import construirIntervaloData from "../utils/construirIntervaloData.js";
+import construirOrdenacao from "../utils/construirOrdenacao.js";
+
 interface Params {
   id: string;
 }
@@ -22,7 +26,7 @@ interface Query {
   limit?: string;
 }
 
-class EstacoesControllers {
+class EstacoesController {
   async index(req: Request<{}, {}, {}, Query>, res: Response) {
     const {
       nome,
@@ -34,52 +38,20 @@ class EstacoesControllers {
     } = req.query;
 
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 25;
+    const limit = Math.min(Number(req.query.limit) || 25, 100);
 
-    let where: WhereOptions = {};
+    const where: WhereOptions = {};
     let order: Order = [];
 
-    if (nome) {
-      where = {
-        ...where,
-        nome: {
-          [Op.iLike]: `%${nome}%`,
-        },
-      };
-    }
+    adicionarFiltroLike(where, "nome", nome);
 
-    if (criadoAntes || criadoDepois) {
-      const criadoEm: Record<symbol, Date> = {};
+    const criado = construirIntervaloData(criadoAntes, criadoDepois);
+    if (criado) (where as any).criado_em = criado;
 
-      if (criadoAntes) {
-        criadoEm[Op.lte] = parseISO(criadoAntes);
-      }
-      if (criadoDepois) {
-        criadoEm[Op.gte] = parseISO(criadoDepois);
-      }
+    const atualizado = construirIntervaloData(atualizadoAntes, atualizadoDepois);
+    if (atualizado) (where as any).atualizado_em = atualizado;
 
-      where = { ...where, criado_em: criadoEm };
-    }
-
-    if (atualizadoAntes || atualizadoDepois) {
-      const atualizadoEm: Record<symbol, Date> = {};
-
-      if (atualizadoAntes) {
-        atualizadoEm[Op.lte] = parseISO(atualizadoAntes);
-      }
-
-      if (atualizadoDepois) {
-        atualizadoEm[Op.gte] = parseISO(atualizadoDepois);
-      }
-
-      where = { ...where, atualizado_em: atualizadoEm };
-    }
-
-    if (sort) {
-      order = sort
-        .split(",")
-        .map((item) => item.split(":") as [string, "ASC" | "DESC"]);
-    }
+    order = construirOrdenacao(sort);
 
     const estacoes = await Estacao.findAll({
       where,
@@ -92,7 +64,7 @@ class EstacoesControllers {
       ],
       order,
       limit,
-      offset: limit * page - limit,
+      offset: (page - 1) * limit,
     });
 
     return res.json(estacoes);
@@ -108,7 +80,7 @@ class EstacoesControllers {
     return res.json(estacao);
   }
 
-  async create(req: Request<Params>, res: Response) {
+  async create(req: Request, res: Response) {
     const schema = Yup.object().shape({
       nome: Yup.string().required(),
       localizacao: Yup.object({
@@ -204,10 +176,10 @@ class EstacoesControllers {
       return res.status(404).json();
     }
 
-    estacao.destroy();
+    await estacao.destroy();
 
     return res.json();
   }
 }
 
-export default new EstacoesControllers();
+export default new EstacoesController();

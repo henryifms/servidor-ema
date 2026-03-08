@@ -1,8 +1,13 @@
 import { Request, Response } from "express";
 import { Op, Order, WhereOptions } from "sequelize";
+import * as Yup from "yup";
 import { parseISO } from "date-fns";
 
-import buildRange from "../utils/buildRange.js";
+import construirRange from "../utils/construirRange.js";
+import construirOrdenacao from "../utils/construirOrdenacao.js";
+import construirIntervaloData from "../utils/construirIntervaloData.js";
+import adicionarFiltroExato from "../utils/adicionarFiltroExato.js";
+
 import Leitura from "../models/Leitura.js";
 import Estacao from "../models/Estacao.js";
 
@@ -69,136 +74,48 @@ class LeiturasController {
     } = req.query;
 
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 25;
+    const limit = Math.min(Number(req.query.limit) || 25, 100);
 
-    let where: WhereOptions = {};
+    const where: WhereOptions = {};
     let order: Order = [];
 
-    // temperatura exata
-    if (temperatura) {
-      where = {
-        ...where,
-        temperatura: {
-          [Op.eq]: Number(temperatura),
-        },
-      };
-    }
+    // filtros exatos
+    adicionarFiltroExato(where, "temperatura", temperatura);
+    adicionarFiltroExato(where, "umidade", umidade);
+    adicionarFiltroExato(where, "pressao_atmosferica", pressao_atmosferica);
+    adicionarFiltroExato(where, "velocidade_vento", velocidade_vento);
+    adicionarFiltroExato(where, "precipitacao", precipitacao);
 
-    // temperatura range
-    if (temperatura_min || temperatura_max) {
-      const temperaturaRange = buildRange(temperatura_min, temperatura_max);
+    // ranges
+    const temperaturaRange = construirRange(temperatura_min, temperatura_max);
+    if (temperaturaRange) (where as any).temperatura = temperaturaRange;
 
-      if (temperaturaRange) {
-        where = { ...where, temperatura: temperaturaRange };
-      }
-    }
+    const umidadeRange = construirRange(umidade_min, umidade_max);
+    if (umidadeRange) (where as any).umidade = umidadeRange;
 
-    // umidade exata
-    if (umidade) {
-      where = {
-        ...where,
-        umidade: {
-          [Op.eq]: Number(umidade),
-        },
-      };
-    }
+    const pressaoRange = construirRange(
+      pressao_atmosferica_min,
+      pressao_atmosferica_max
+    );
+    if (pressaoRange) (where as any).pressao_atmosferica = pressaoRange;
 
-    // umidade range
-    if (umidade_min || umidade_max) {
-      const umidadeRange = buildRange(umidade_min, umidade_max);
+    const ventoRange = construirRange(
+      velocidade_vento_min,
+      velocidade_vento_max
+    );
+    if (ventoRange) (where as any).velocidade_vento = ventoRange;
 
-      if (umidadeRange) {
-        where = { ...where, umidade: umidadeRange };
-      }
-    }
-
-    // pressão exata
-    if (pressao_atmosferica) {
-      where = {
-        ...where,
-        pressao_atmosferica: {
-          [Op.eq]: Number(pressao_atmosferica),
-        },
-      };
-    }
-
-    // pressão range
-    if (pressao_atmosferica_min || pressao_atmosferica_max) {
-      const pressaoRange = buildRange(
-        pressao_atmosferica_min,
-        pressao_atmosferica_max
-      );
-
-      if (pressaoRange) {
-        where = { ...where, pressao_atmosferica: pressaoRange };
-      }
-    }
-
-    // vento exato
-    if (velocidade_vento) {
-      where = {
-        ...where,
-        velocidade_vento: {
-          [Op.eq]: Number(velocidade_vento),
-        },
-      };
-    }
-
-    // vento range
-    if (velocidade_vento_min || velocidade_vento_max) {
-      const ventoRange = buildRange(
-        velocidade_vento_min,
-        velocidade_vento_max
-      );
-
-      if (ventoRange) {
-        where = { ...where, velocidade_vento: ventoRange };
-      }
-    }
-
-    // precipitação exata
-    if (precipitacao) {
-      where = {
-        ...where,
-        precipitacao: {
-          [Op.eq]: Number(precipitacao),
-        },
-      };
-    }
-
-    // precipitação range
-    if (precipitacao_min || precipitacao_max) {
-      const precipitacaoRange = buildRange(
-        precipitacao_min,
-        precipitacao_max
-      );
-
-      if (precipitacaoRange) {
-        where = { ...where, precipitacao: precipitacaoRange };
-      }
-    }
+    const precipitacaoRange = construirRange(
+      precipitacao_min,
+      precipitacao_max
+    );
+    if (precipitacaoRange) (where as any).precipitacao = precipitacaoRange;
 
     // filtro por data
-    if (criadaAntes || criadaDepois) {
-      const data_leitura: Record<symbol, Date> = {};
+    const data = construirIntervaloData(criadaAntes, criadaDepois);
+    if (data) (where as any).data_leitura = data;
 
-      if (criadaAntes) {
-        data_leitura[Op.lte] = parseISO(criadaAntes);
-      }
-
-      if (criadaDepois) {
-        data_leitura[Op.gte] = parseISO(criadaDepois);
-      }
-
-      where = { ...where, data_leitura };
-    }
-
-    // ordenação dinâmica
-    if (sort) {
-      order = sort
-        .split(",")
-        .map((item) => item.split(":") as [string, "ASC" | "DESC"]);
-    }
+    order = construirOrdenacao(sort);
 
     const leituras = await Leitura.findAll({
       where,
@@ -233,6 +150,32 @@ class LeiturasController {
     }
 
     return res.json(leitura);
+  }
+
+  async create(req: Request, res: Response) {
+    const schema = Yup.object().shape({
+      temperatura: Yup.number().required(),
+      umidade: Yup.number().required(),
+      pressao_atmosferica: Yup.number().required(),
+      velocidade_vento: Yup.number().required(),
+      precipitacao: Yup.number().required(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ erro: "Erro ao validar schema." });
+    }
+
+    if (!req.estacaoId) {
+      return res.status(401).json({ erro: "Estação não autenticada." });
+    }
+
+    const novaLeitura = await Leitura.create({
+      estacao_id: req.estacaoId,
+      ...req.body,
+      data_leitura: new Date(),
+    });
+
+    return res.status(201).json(novaLeitura);
   }
 }
 
