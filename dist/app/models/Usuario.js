@@ -32,3 +32,4 @@ class Usuario extends Model {
     }
 }
 export default Usuario;
+//# sourceMappingURL=Usuario.js.map

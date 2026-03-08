@@ -29,6 +29,8 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
         tableName: "usuarios",
         modelName: "Usuario",
         underscored: true,
+        createdAt: "criado_em",
+        updatedAt: "atualizado_em",
       }
     );
 

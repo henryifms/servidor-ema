@@ -33,3 +33,4 @@ export default {
         await queryInterface.dropTable("usuarios");
     },
 };
+//# sourceMappingURL=20260305131624-create-usuarios.js.map

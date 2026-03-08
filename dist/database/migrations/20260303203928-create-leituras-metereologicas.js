@@ -45,3 +45,4 @@ export default {
         await queryInterface.dropTable("leituras_metereologicas");
     },
 };
+//# sourceMappingURL=20260303203928-create-leituras-metereologicas.js.map

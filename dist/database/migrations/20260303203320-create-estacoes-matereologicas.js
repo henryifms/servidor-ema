@@ -33,3 +33,4 @@ export default {
         await queryInterface.dropTable("estacoes_metereologicas");
     },
 };
+//# sourceMappingURL=20260303203320-create-estacoes-matereologicas.js.map

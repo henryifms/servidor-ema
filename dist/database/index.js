@@ -2,6 +2,7 @@ import { Sequelize } from "sequelize";
 import config from "../config/database.js";
 import Estacao from "../app/models/Estacao.js";
 import Leitura from "../app/models/Leitura.js";
+import Usuario from "../app/models/Usuario.js";
 class Database {
     connection;
     models;
@@ -10,6 +11,7 @@ class Database {
         this.models = {
             Estacao,
             Leitura,
+            Usuario,
         };
         this.initModels();
         this.runAssociations();
@@ -33,3 +35,4 @@ class Database {
 }
 const database = new Database();
 export default database;
+//# sourceMappingURL=index.js.map

@@ -39,3 +39,4 @@ export default {
         await queryInterface.dropTable("usuario_estacoes");
     },
 };
+//# sourceMappingURL=20260305135548-usuario_estacoes.js.map

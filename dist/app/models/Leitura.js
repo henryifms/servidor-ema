@@ -24,3 +24,4 @@ class Leitura extends Model {
     }
 }
 export default Leitura;
+//# sourceMappingURL=Leitura.js.map

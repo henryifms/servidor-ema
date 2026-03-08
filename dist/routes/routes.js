@@ -5,5 +5,6 @@ routes.get("/estacoes", estacoes.index);
 routes.get("/estacoes/:id", estacoes.show);
 routes.post("/estacoes", estacoes.create);
 routes.put("/estacoes/:id", estacoes.update);
-// leituras.get("/estacoes/:id/leituras", leituras.index);
+// routes.get("/estacoes/:id/leituras", leituras.index);
 export default routes;
+//# sourceMappingURL=routes.js.map

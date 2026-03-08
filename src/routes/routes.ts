@@ -8,7 +8,8 @@ routes.get("/estacoes", estacoes.index);
 routes.get("/estacoes/:id", estacoes.show);
 routes.post("/estacoes", estacoes.create);
 routes.put("/estacoes/:id", estacoes.update);
+routes.delete("/estacoes/:id", estacoes.destroy);
 
-// routes.get("/estacoes/:id/leituras", leituras.index);
+routes.get("/estacoes/:id/leituras", leituras.index);
 
 export default routes;

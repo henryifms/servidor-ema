@@ -22,3 +22,4 @@ class Estacao extends Model {
     }
 }
 export default Estacao;
+//# sourceMappingURL=Estacao.js.map

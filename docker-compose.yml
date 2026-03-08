@@ -9,6 +9,7 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    command: yarn dev
     depends_on:
       db:
         condition: service_healthy
@@ -19,7 +20,7 @@ services:
 
   migrate:
     build: .
-    command: yarn migrate
+    command: sh -c "until pg_isready -h db -p 5432 -U ${DB_USER}; do sleep 2; done && yarn migrate"
     depends_on:
       db:
         condition: service_healthy

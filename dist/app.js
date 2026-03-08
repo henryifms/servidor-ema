@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import routes from "./routes/routes.js";
-import "./database/index.ts";
+import "./database/index.js";
 class App {
     server;
     constructor() {
@@ -18,7 +18,7 @@ class App {
         this.server.use(routes);
     }
     exceptionHandler() {
-        this.server.use((err, req, res, next) => {
+        this.server.use((err, req, res, _next) => {
             if (process.env.NODE_ENV === "development") {
                 console.error(err);
             }
@@ -29,3 +29,4 @@ class App {
     }
 }
 export default new App().server;
+//# sourceMappingURL=app.js.map

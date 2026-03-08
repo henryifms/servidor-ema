@@ -4,3 +4,4 @@ const auth = {
     expiresIn: "7d",
 };
 export default auth;
+//# sourceMappingURL=auth.js.map

@@ -13,10 +13,10 @@ interface Params {
 
 interface Query {
   nome?: string;
-  createdBefore?: string;
-  createdAfter?: string;
-  updatedBefore?: string;
-  updatedAfter?: string;
+  criadoAntes?: string;
+  criadoDepois?: string;
+  atualizadoAntes?: string;
+  atualizadoDepois?: string;
   sort?: string;
   page?: string;
   limit?: string;
@@ -26,10 +26,10 @@ class EstacoesControllers {
   async index(req: Request<{}, {}, {}, Query>, res: Response) {
     const {
       nome,
-      createdBefore,
-      createdAfter,
-      updatedBefore,
-      updatedAfter,
+      criadoAntes,
+      criadoDepois,
+      atualizadoAntes,
+      atualizadoDepois,
       sort,
     } = req.query;
 
@@ -48,31 +48,31 @@ class EstacoesControllers {
       };
     }
 
-    if (createdBefore || createdAfter) {
-      const createdAt: Record<symbol, Date> = {};
+    if (criadoAntes || criadoDepois) {
+      const criadoEm: Record<symbol, Date> = {};
 
-      if (createdBefore) {
-        createdAt[Op.lte] = parseISO(createdBefore);
+      if (criadoAntes) {
+        criadoEm[Op.lte] = parseISO(criadoAntes);
       }
-      if (createdAfter) {
-        createdAt[Op.gte] = parseISO(createdAfter);
+      if (criadoDepois) {
+        criadoEm[Op.gte] = parseISO(criadoDepois);
       }
 
-      where = { ...where, createdAt };
+      where = { ...where, criado_em: criadoEm };
     }
 
-    if (updatedBefore || updatedAfter) {
-      const updatedAt: Record<symbol, Date> = {};
+    if (atualizadoAntes || atualizadoDepois) {
+      const atualizadoEm: Record<symbol, Date> = {};
 
-      if (updatedBefore) {
-        updatedAt[Op.lte] = parseISO(updatedBefore);
+      if (atualizadoAntes) {
+        atualizadoEm[Op.lte] = parseISO(atualizadoAntes);
       }
 
-      if (updatedAfter) {
-        updatedAt[Op.gte] = parseISO(updatedAfter);
+      if (atualizadoDepois) {
+        atualizadoEm[Op.gte] = parseISO(atualizadoDepois);
       }
 
-      where = { ...where, updatedAt };
+      where = { ...where, atualizado_em: atualizadoEm };
     }
 
     if (sort) {
@@ -197,7 +197,7 @@ class EstacoesControllers {
 
     return res.json(estacao);
   }
-  async delete(req: Request<Params>, res: Response) {
+  async destroy(req: Request<Params>, res: Response) {
     const estacao = await Estacao.findByPk(req.params.id)
 
     if (!estacao) {
