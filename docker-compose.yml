@@ -20,7 +20,7 @@ services:
 
   migrate:
     build: .
-    command: sh -c "until pg_isready -h db -p 5432 -U ${DB_USER}; do sleep 2; done && yarn migrate"
+    command: sh -c "until pg_isready -h db -p 5432 -U ${DB_USER}; do sleep 2; done && yarn migrate && yarn seed"
     depends_on:
       db:
         condition: service_healthy
