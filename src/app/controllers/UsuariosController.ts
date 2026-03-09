@@ -53,6 +53,7 @@ class UsuariosController {
 
     const usuarios = await Usuario.findAll({
       where,
+      attributes: ["id", "nome", "email"],
       include: [
         {
           model: Estacao,

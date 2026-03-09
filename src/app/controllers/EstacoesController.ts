@@ -71,7 +71,16 @@ class EstacoesController {
   }
 
   async show(req: Request<Params>, res: Response) {
-    const estacao = await Estacao.findByPk(req.params.id);
+    const estacao = await Estacao.findByPk(req.params.id, {
+      include: [
+        {
+          model: Leitura,
+          as: "leituras",
+          attributes: ["id", "estacao_id"],
+        },
+      ],
+    });
+
 
     if (!estacao) {
       return res.status(404).json();

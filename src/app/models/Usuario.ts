@@ -7,6 +7,8 @@ interface AtributosUsuario {
   email: string;
   password?: string;
   password_hash: string;
+  criado_em?: Date;
+  atualizado_em?: Date;
 }
 
 class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
@@ -15,6 +17,8 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
   declare email: string;
   declare password?: string;
   declare password_hash: string;
+  declare readonly criado_em: Date;
+  declare readonly atualizado_em: Date;
 
   static initModel(sequelize: Sequelize) {
     const model = super.init(
