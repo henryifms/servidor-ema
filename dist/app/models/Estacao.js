@@ -10,6 +10,8 @@ class Estacao extends Model {
             tableName: "estacoes_metereologicas",
             modelName: "Estacao",
             underscored: true,
+            createdAt: "criado_em",
+            updatedAt: "atualizado_em",
         });
     }
     static associate(models) {

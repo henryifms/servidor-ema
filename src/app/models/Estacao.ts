@@ -1,4 +1,5 @@
-import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional, BelongsToManyHasAssociationMixin } from "sequelize";
+import Usuario from "./Usuario.js";
 
 interface Localizacao {
   type: "Point";
@@ -23,6 +24,7 @@ class Estacao
   declare nome: string;
   declare localizacao: Localizacao;
   declare api_key: string;
+  declare hasUsuario: BelongsToManyHasAssociationMixin<Usuario, number>;
 
   static initModel(sequelize: Sequelize) {
     return super.init(

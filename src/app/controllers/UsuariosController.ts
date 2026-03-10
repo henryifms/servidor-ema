@@ -9,8 +9,16 @@ import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
 import construirIntervaloData from "../utils/construirIntervaloData.js";
 import construirOrdenacao from "../utils/construirOrdenacao.js";
 
-interface Params {
-  id: string,
+import Queue from "../../lib/Queue.js";
+import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
+
+interface UsuarioIdParam {
+  id: string
+}
+
+interface UsuarioEstacaoParams {
+  usuarioId: string
+  estacaoId: string
 }
 
 interface Query {
@@ -69,7 +77,7 @@ class UsuariosController {
     return res.json(usuarios);
   }
 
-  async show(req: Request<Params>, res: Response) {
+  async show(req: Request<UsuarioIdParam>, res: Response) {
     const usuario = await Usuario.findByPk(req.params.id, {
       include: [
         {
@@ -107,11 +115,13 @@ class UsuariosController {
     const novoUsuario = await Usuario.create(body);
 
     const { id, nome, email } = novoUsuario;
+
+    await Queue.add(WelcomeEmailJob.key, { nome, email });
     
     return res.status(201).json({ id, nome, email });
   }
 
-  async update(req: Request<Params>, res: Response) {
+  async update(req: Request<UsuarioIdParam>, res: Response) {
     const { body } = req;
 
     const usuario = await Usuario.findByPk(req.params.id);
@@ -125,12 +135,12 @@ class UsuariosController {
       email: Yup.string(),
       oldPassword: Yup.string().min(8),
       password: Yup.string().when("oldPassword", {
-        is: (val) => !!val,
+        is: (val: string | undefined) => !!val,
         then: (schema) => schema.required().min(8),
         otherwise: (schema) => schema.notRequired(),
       }),
       passwordConfirmation: Yup.string().when("password", {
-        is: (val) => !!val,
+        is: (val: string | undefined) => !!val,
         then: (schema) => schema.required().oneOf([Yup.ref("password")],
         "Senha não bate."),
         otherwise: (schema) => schema.notRequired(),
@@ -152,7 +162,7 @@ class UsuariosController {
     return res.json(usuarioAtualizado);
   }
 
-  async destroy(req: Request<Params>, res: Response) {
+  async destroy(req: Request<UsuarioIdParam>, res: Response) {
     const usuario = await Usuario.findByPk(req.params.id);
 
     if (!usuario) {
@@ -162,6 +172,33 @@ class UsuariosController {
     await usuario.destroy();
 
     return res.json();
+  }
+
+  async adicionarEstacao(req: Request<UsuarioEstacaoParams>, res: Response) {
+    const { usuarioId, estacaoId } = req.params;
+
+    const usuario = await Usuario.findByPk(usuarioId);
+    const estacao = await Estacao.findByPk(estacaoId);
+
+    if (!usuario || !estacao) {
+      return res.status(404).json({ erro: "Usuário ou estação não encontrado." });
+    }
+
+    if (!req.userId) {
+      return res.status(401).json({ erro: "Usuário não autenticado." });
+    }
+
+    const dono = await estacao.hasUsuario(Number(req.userId));
+
+    if (!dono) {
+      return res.status(403).json({ erro: "Sem premissão." });
+    }
+
+    console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(usuario)));
+
+    await usuario.addEstacao(estacao);
+
+    return res.status(204).send();
   }
 }
 

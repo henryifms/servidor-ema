@@ -32,6 +32,7 @@ routes.get("/usuarios", usuarios.index);
 routes.get("/usuarios/:id", usuarios.show);
 routes.put("/usuarios/:id", usuarios.update);
 routes.delete("/usuarios/:id", usuarios.destroy);
+routes.post("/usuarios/:usuarioId/estacoes/:estacaoId", usuarios.adicionarEstacao);
 
 /*
 ESTAÇÕES

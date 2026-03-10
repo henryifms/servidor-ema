@@ -6,6 +6,7 @@ import crypto from "crypto";
 
 import Estacao from "../models/Estacao.js";
 import Leitura from "../models/Leitura.js";
+import Usuario from "../models/Usuario.js";
 
 import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
 import construirIntervaloData from "../utils/construirIntervaloData.js";
@@ -119,6 +120,14 @@ class EstacoesController {
         coordinates: [longitude, latitude],
       },
     });
+
+    const usuario = await Usuario.findByPk(req.userId);
+
+    if (!usuario) {
+      return res.status(404).json({ erro: "Usuario não encontrado." })
+    }
+
+    await usuario.addEstacoes([novaEstacao]);
 
     return res.status(201).json(novaEstacao);
   }

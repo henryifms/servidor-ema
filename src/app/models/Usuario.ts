@@ -1,5 +1,6 @@
-import { Sequelize, DataTypes, Model } from "sequelize";
+import { Sequelize, DataTypes, Model, BelongsToManyAddAssociationMixin } from "sequelize";
 import bcrypt from "bcryptjs";
+import Estacao from "./Estacao.js";
 
 interface AtributosUsuario {
   id?: number;
@@ -19,6 +20,7 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
   declare password_hash: string;
   declare readonly criado_em: Date;
   declare readonly atualizado_em: Date;
+  declare addEstacao: BelongsToManyAddAssociationMixin<Estacao, number>;
 
   static initModel(sequelize: Sequelize) {
     const model = super.init(

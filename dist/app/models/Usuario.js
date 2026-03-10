@@ -12,6 +12,8 @@ class Usuario extends Model {
             tableName: "usuarios",
             modelName: "Usuario",
             underscored: true,
+            createdAt: "criado_em",
+            updatedAt: "atualizado_em",
         });
         this.addHook("beforeSave", async (usuario) => {
             if (usuario.password) {

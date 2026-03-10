@@ -1,49 +1,26 @@
-import { Op } from "sequelize";
-import { parseISO } from "date-fns";
 import * as Yup from "yup";
 import crypto from "crypto";
 import Estacao from "../models/Estacao.js";
 import Leitura from "../models/Leitura.js";
-class EstacoesControllers {
+import Usuario from "../models/Usuario.js";
+import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
+import construirIntervaloData from "../utils/construirIntervaloData.js";
+import construirOrdenacao from "../utils/construirOrdenacao.js";
+class EstacoesController {
     async index(req, res) {
         const { nome, criadoAntes, criadoDepois, atualizadoAntes, atualizadoDepois, sort, } = req.query;
         const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 25;
-        let where = {};
+        const limit = Math.min(Number(req.query.limit) || 25, 100);
+        const where = {};
         let order = [];
-        if (nome) {
-            where = {
-                ...where,
-                nome: {
-                    [Op.iLike]: `%${nome}%`,
-                },
-            };
-        }
-        if (criadoAntes || criadoDepois) {
-            const criadoEm = {};
-            if (criadoAntes) {
-                criadoEm[Op.lte] = parseISO(criadoAntes);
-            }
-            if (criadoDepois) {
-                criadoEm[Op.gte] = parseISO(criadoDepois);
-            }
-            where = { ...where, criadoEm };
-        }
-        if (atualizadoAntes || atualizadoDepois) {
-            const atualizadoEm = {};
-            if (atualizadoAntes) {
-                atualizadoEm[Op.lte] = parseISO(atualizadoAntes);
-            }
-            if (atualizadoDepois) {
-                atualizadoEm[Op.gte] = parseISO(atualizadoDepois);
-            }
-            where = { ...where, updatedAt: atualizadoEm };
-        }
-        if (sort) {
-            order = sort
-                .split(",")
-                .map((item) => item.split(":"));
-        }
+        adicionarFiltroLike(where, "nome", nome);
+        const criado = construirIntervaloData(criadoAntes, criadoDepois);
+        if (criado)
+            where.criado_em = criado;
+        const atualizado = construirIntervaloData(atualizadoAntes, atualizadoDepois);
+        if (atualizado)
+            where.atualizado_em = atualizado;
+        order = construirOrdenacao(sort);
         const estacoes = await Estacao.findAll({
             where,
             include: [
@@ -55,12 +32,20 @@ class EstacoesControllers {
             ],
             order,
             limit,
-            offset: limit * page - limit,
+            offset: (page - 1) * limit,
         });
         return res.json(estacoes);
     }
     async show(req, res) {
-        const estacao = await Estacao.findByPk(req.params.id);
+        const estacao = await Estacao.findByPk(req.params.id, {
+            include: [
+                {
+                    model: Leitura,
+                    as: "leituras",
+                    attributes: ["id", "estacao_id"],
+                },
+            ],
+        });
         if (!estacao) {
             return res.status(404).json();
         }
@@ -88,6 +73,11 @@ class EstacoesControllers {
                 coordinates: [longitude, latitude],
             },
         });
+        const usuario = await Usuario.findByPk(req.userId);
+        if (!usuario) {
+            return res.status(404).json({ erro: "Usuario não encontrado." });
+        }
+        await usuario.addEstacao(novaEstacao);
         return res.status(201).json(novaEstacao);
     }
     async update(req, res) {
@@ -126,14 +116,14 @@ class EstacoesControllers {
         await estacao.update(updateData);
         return res.json(estacao);
     }
-    async delete(req, res) {
+    async destroy(req, res) {
         const estacao = await Estacao.findByPk(req.params.id);
         if (!estacao) {
             return res.status(404).json();
         }
-        estacao.destroy();
+        await estacao.destroy();
         return res.json();
     }
 }
-export default new EstacoesControllers();
+export default new EstacoesController();
 //# sourceMappingURL=EstacoesController.js.map

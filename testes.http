@@ -1,0 +1,13 @@
+# POST http://localhost:3000/sessions
+# Content-Type: application/json
+# Accept: application/json
+#
+# {
+#     "email": "henry.campos@estudante.ifms.edu.br",
+#     "password": "Henry@2009"
+# }
+
+
+GET http://localhost:3000/usuarios
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzczMDcxOTQ5LCJleHAiOjE3NzM2NzY3NDl9.zgfF0x3MVd0-jucsBwewFdNDBuskKzo1hky1Bv1pyXE
+Accept: application/json
