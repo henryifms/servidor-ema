@@ -1,4 +1,4 @@
-import Mail from "../../lib/Mail.ts"
+import Mail from "../../lib/Mail.ts";
 
 class WelcomeMailJob {
   get key() {
@@ -9,9 +9,9 @@ class WelcomeMailJob {
     const { nome, email } = data;
 
     Mail.send({
-      to: "henry.campos@estudante.ifms.edu.br",
-      subject: "Bem vindo(a) - ${email}",
-      html: `<h1> Olá ${nome}.</h1><p>Bem-vindo(a) ao sistema EMA!</p>`
+      to: email,
+      subject: `Bem vindo(a) - ${email}`,
+      html: `<h1> Olá ${nome}.</h1><p>Bem-vindo(a) ao sistema EMA!</p>`,
       text: `Olá ${nome}. Bem-vindo(a) ao sistema!`,
     });
   }

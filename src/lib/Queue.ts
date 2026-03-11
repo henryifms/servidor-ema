@@ -2,10 +2,9 @@ import Bee from "bee-queue";
 import redisConfig from "../config/redis.js";
 import "dotenv/config";
 
-import DummyJob from "../app/jobs/DummyJob.js";
 import WelcomeEmailJob from "../app/jobs/WelcomeEmailJob.js";
 
-const jobs = [DummyJob, WelcomeEmailJob];
+const jobs = [WelcomeEmailJob];
 
 class Queue {
   constructor() {

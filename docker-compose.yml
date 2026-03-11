@@ -27,6 +27,21 @@ services:
     env_file:
       - .env
 
+  worker:
+    build: .
+    container_name: servidor-ema-worker
+    command: yarn queue
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - redis
+      - db
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - .env
+
   db:
     image: postgis/postgis:16-3.4
     ports:
