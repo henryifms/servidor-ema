@@ -2,10 +2,16 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("usuarios_estacoes", {
-      usuario_id: {
+    await queryInterface.createTable("convites_estacao", {
+      id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+      },
+
+      usuario_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
         references: {
           model: "usuarios",
           key: "id",
@@ -15,7 +21,7 @@ module.exports = {
 
       estacao_id: {
         type: Sequelize.INTEGER,
-        primaryKey: true,
+        allowNull: false,
         references: {
           model: "estacoes_metereologicas",
           key: "id",
@@ -23,10 +29,10 @@ module.exports = {
         onDelete: "CASCADE",
       },
 
-      role: {
-        type: Sequelize.ENUM("PROPRIETARIO", "ADMIN", "MEMBRO"),
+      status: {
+        type: Sequelize.ENUM("PENDENTE", "ACEITO", "REJEITADO"),
         allowNull: false,
-        defaultValue: "MEMBRO",
+        defaultValue: "PENDENTE",
       },
 
       criado_em: {
@@ -39,12 +45,19 @@ module.exports = {
         allowNull: false,
       },
     });
+
+    // impedir dois convites pendentes iguais
+    await queryInterface.addConstraint("convites_estacao", {
+      fields: ["usuario_id", "estacao_id"],
+      type: "unique",
+      name: "unique_convite_usuario_estacao",
+    });
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable("usuarios_estacoes");
+    await queryInterface.dropTable("convites_estacao");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_usuarios_estacoes_role";'
+      'DROP TYPE IF EXISTS "enum_convites_estacao_status";'
     );
   },
 };

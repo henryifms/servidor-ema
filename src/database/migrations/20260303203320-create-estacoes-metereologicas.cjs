@@ -20,9 +20,17 @@ module.exports = {
         allowNull: false,
       },
 
+      usuario_proprietario_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "usuarios",
+          key: "id",
+        },
+      },
+
       api_key: {
         type: Sequelize.STRING,
-        allowNull: false,
         unique: true,
       },
 

@@ -57,9 +57,9 @@ routes.delete("/estacoes/:id", estacoes.destroy);
 LEITURAS
 */
 
+routes.get("/estacoes/:estacaoId/leituras/ultima", leituras.ultima);
 routes.get("/estacoes/:estacaoId/leituras", leituras.index);
 routes.get("/estacoes/:estacaoId/leituras/:id", leituras.show);
-routes.get("/estacoes/:estacaoId/leituras/ultima", leituras.ultima);
 
 /*
 INGESTÃO DA ESTAÇÃO (API KEY)

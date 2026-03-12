@@ -1,4 +1,4 @@
-import Leitura from "../models/Leitura.ts";
+import Leitura from "../models/Leitura.js";
 
 class SaveLeituraJob {
   get key() {

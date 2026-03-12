@@ -104,7 +104,7 @@ class UsuariosController {
       password: Yup.string().required().min(8),
       passwordConfirmation: Yup.string().oneOf(
         [Yup.ref("password")],
-        "Senha não bate.",
+        "Senha não bate."
       ),
     });
 
@@ -112,18 +112,25 @@ class UsuariosController {
       return res.status(400).json({ erro: "Erro ao validar schema." });
     }
 
+    const usuarioExiste = await Usuario.findOne({
+      where: { email: body.email },
+    });
+
+    if (usuarioExiste) {
+      return res.status(409).json({
+        erro: "Usuário com este email já existe.",
+      });
+    }
+
     const novoUsuario = await Usuario.create(body);
 
     const { id, nome, email } = novoUsuario;
 
     await Queue.add(WelcomeEmailJob.key, { nome, email });
-    
     return res.status(201).json({ id, nome, email });
   }
 
   async update(req: Request<UsuarioIdParam>, res: Response) {
-    const { body } = req;
-
     const usuario = await Usuario.findByPk(req.params.id);
 
     if (!usuario) {
@@ -132,34 +139,18 @@ class UsuariosController {
 
     const schema = Yup.object().shape({
       nome: Yup.string(),
-      email: Yup.string(),
-      oldPassword: Yup.string().min(8),
-      password: Yup.string().when("oldPassword", {
-        is: (val: string | undefined) => !!val,
-        then: (schema) => schema.required().min(8),
-        otherwise: (schema) => schema.notRequired(),
-      }),
-      passwordConfirmation: Yup.string().when("password", {
-        is: (val: string | undefined) => !!val,
-        then: (schema) => schema.required().oneOf([Yup.ref("password")],
-        "Senha não bate."),
-        otherwise: (schema) => schema.notRequired(),
-      }),
+      email: Yup.string().email(),
     });
 
-    if (!(await schema.isValid(body))) {
+    if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ erro: "Erro ao validar schema." });
-    }
-
-    const { oldPassword } = req.body;
-
-    if (oldPassword && !(await usuario.checkPassword(oldPassword))) {
-      return res.status(401).json({ erro: "Senha do usuário não bate." });
     }
 
     const usuarioAtualizado = await usuario.update(req.body);
 
-    return res.json(usuarioAtualizado);
+    const { id, nome, email } = usuarioAtualizado;
+
+    return res.json({ id, nome, email });
   }
 
   async destroy(req: Request<UsuarioIdParam>, res: Response) {
@@ -181,17 +172,17 @@ class UsuariosController {
     const estacao = await Estacao.findByPk(estacaoId);
 
     if (!usuario || !estacao) {
-      return res.status(404).json({ erro: "Usuário ou estação não encontrado." });
+      return res
+        .status(404)
+        .json({ erro: "Usuário ou estação não encontrado." });
     }
 
     if (!req.userId) {
       return res.status(401).json({ erro: "Usuário não autenticado." });
     }
 
-    const dono = await estacao.hasUsuario(Number(req.userId));
-
-    if (!dono) {
-      return res.status(403).json({ erro: "Sem premissão." });
+    if (Number(usuarioId) !== req.userId) {
+      return res.status(403).json({ erro: "Sem permissão." });
     }
 
     console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(usuario)));

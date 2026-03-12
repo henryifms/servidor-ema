@@ -6,7 +6,7 @@ export default async function apiKey(
   res: Response,
   next: NextFunction
 ) {
-  const apiKey = req.headers["x-api-key"];
+  const apiKey = req.headers["x-api-key"] as string;
 
   if (!apiKey) {
     return res.status(401).json({ erro: "API key não enviada." });

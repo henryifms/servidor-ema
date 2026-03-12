@@ -162,39 +162,44 @@ class LeiturasController {
   }
 
   async create(req: Request, res: Response) {
-    const schema = Yup.object().shape({
-      temperatura: Yup.number().required(),
-      umidade: Yup.number().required(),
-      pressao_atmosferica: Yup.number().required(),
-      velocidade_vento: Yup.number().required(),
-      precipitacao: Yup.number().required(),
-    });
+    try {
+      const schema = Yup.object().shape({
+        temperatura: Yup.number().required(),
+        umidade: Yup.number().required(),
+        pressao_atmosferica: Yup.number().required(),
+        velocidade_vento: Yup.number().required(),
+        precipitacao: Yup.number().required(),
+      });
 
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ erro: "Erro ao validar schema." });
-    }
+      if (!(await schema.isValid(req.body))) {
+        return res.status(400).json({ erro: "Erro ao validar schema." });
+      }
 
-    if (!req.estacaoId) {
-      return res.status(401).json({ erro: "Estação não autenticada." });
-    }
+      if (!req.estacaoId) {
+        return res.status(401).json({ erro: "Estação não autenticada." });
+      }
 
-    await redis.set(
-      `estacao:${req.estacaoId}:ultima`,
-      JSON.stringify({
+      const leitura = {
+        estacao_id: req.estacaoId,
         ...req.body,
         data_leitura: new Date(),
-      })
-    );
+      };
 
-    await Queue.add(SaveLeituraJob.key, {
-      estacao_id: req.estacaoId,
-      ...req.body,
-      data_leitura: new Date(),
-    });
+      await redis.set(
+        `estacao:${req.estacaoId}:ultima`,
+        JSON.stringify(leitura)
+      );
 
-    return res.status(202).json({
-      message: "Leitura recebida",
-    });
+      await Queue.add(SaveLeituraJob.key, leitura);
+
+      return res.status(202).json(leitura);
+    } catch (err) {
+      console.error(err);
+
+      return res.status(500).json({
+        erro: "Erro interno no servidor.",
+      });
+    }
   }
 
   async ultima(req: Request<Params>, res: Response) {
