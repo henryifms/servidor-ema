@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+
 import authMiddleware from "../app/middlewares/auth.js";
 import apiKey from "../app/middlewares/apiKeys.js";
 
@@ -7,6 +8,7 @@ import sessions from "../app/controllers/SessionsController.js";
 import usuarios from "../app/controllers/UsuariosController.js";
 import estacoes from "../app/controllers/EstacoesController.js";
 import leituras from "../app/controllers/LeiturasController.js";
+import password from "../app/controllers/PasswordController.js";
 
 const routes = Router();
 
@@ -22,6 +24,10 @@ USUÁRIOS
 
 routes.post("/usuarios", usuarios.create);
 
+// REDEFINIÇÂO DE SENHA
+routes.post("/password/forgot", password.forgot);
+routes.post("/password/reset", password.reset);
+
 /*
 ROTAS PROTEGIDAS (JWT)
 */
@@ -32,7 +38,10 @@ routes.get("/usuarios", usuarios.index);
 routes.get("/usuarios/:id", usuarios.show);
 routes.put("/usuarios/:id", usuarios.update);
 routes.delete("/usuarios/:id", usuarios.destroy);
-routes.post("/usuarios/:usuarioId/estacoes/:estacaoId", usuarios.adicionarEstacao);
+routes.post(
+  "/usuarios/:usuarioId/estacoes/:estacaoId",
+  usuarios.adicionarEstacao
+);
 
 /*
 ESTAÇÕES
@@ -50,6 +59,7 @@ LEITURAS
 
 routes.get("/estacoes/:estacaoId/leituras", leituras.index);
 routes.get("/estacoes/:estacaoId/leituras/:id", leituras.show);
+routes.get("/estacoes/:estacaoId/leituras/ultima", leituras.ultima);
 
 /*
 INGESTÃO DA ESTAÇÃO (API KEY)

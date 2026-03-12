@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import { Op, Order, WhereOptions } from "sequelize";
+import { Order, WhereOptions } from "sequelize";
 import * as Yup from "yup";
-import { parseISO } from "date-fns";
 
 import construirRange from "../utils/construirRange.js";
 import construirOrdenacao from "../utils/construirOrdenacao.js";
@@ -11,8 +10,13 @@ import adicionarFiltroExato from "../utils/adicionarFiltroExato.js";
 import Leitura from "../models/Leitura.js";
 import Estacao from "../models/Estacao.js";
 
+import redis from "../../lib/redis.js";
+import Queue from "../../lib/Queue.ts";
+import SaveLeituraJob from "../jobs/SaveLeituraJob.js";
+
 interface Params {
   id: string;
+  estacaoId: string;
 }
 
 interface Query {
@@ -169,13 +173,35 @@ class LeiturasController {
       return res.status(401).json({ erro: "Estação não autenticada." });
     }
 
-    const novaLeitura = await Leitura.create({
+    await redis.set(
+      `estacao:${req.estacaoId}:ultima`,
+      JSON.stringify({
+        ...req.body,
+        data_leitura: new Date(),
+      })
+    );
+
+    await Queue.add(SaveLeituraJob.key, {
       estacao_id: req.estacaoId,
       ...req.body,
       data_leitura: new Date(),
     });
 
-    return res.status(201).json(novaLeitura);
+    return res.status(202).json({
+      message: "Leitura recebida",
+    });
+  }
+
+  async ultima(req: Request<Params>, res: Response) {
+    const { estacaoId } = req.params;
+
+    const ultimaLeitura = await redis.get(`estacao:${estacaoId}:ultima`);
+
+    if (!ultimaLeitura) {
+      return res.status(404).json();
+    }
+
+    return res.json(JSON.parse(ultimaLeitura));
   }
 }
 
