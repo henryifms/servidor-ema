@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Order, WhereOptions } from "sequelize";
+import { WhereOptions, Order } from "sequelize";
 import * as Yup from "yup";
 
 import construirRange from "../utils/construirRange.js";
@@ -11,7 +11,7 @@ import Leitura from "../models/Leitura.js";
 import Estacao from "../models/Estacao.js";
 
 import redis from "../../lib/redis.js";
-import Queue from "../../lib/Queue.ts";
+import Queue from "../../lib/Queue.js";
 import SaveLeituraJob from "../jobs/SaveLeituraJob.js";
 
 interface Params {
@@ -49,7 +49,7 @@ interface Query {
 }
 
 class LeiturasController {
-  async index(req: Request<{}, {}, {}, Query>, res: Response) {
+  async index(req: Request<Params, unknown, unknown, Query>, res: Response) {
     const {
       temperatura,
       temperatura_min,
@@ -80,7 +80,12 @@ class LeiturasController {
     const page = Number(req.query.page) || 1;
     const limit = Math.min(Number(req.query.limit) || 25, 100);
 
-    const where: WhereOptions = {};
+    const { estacaoId } = req.params;
+
+    const where: WhereOptions = {
+      estacao_id: estacaoId,
+    };
+
     let order: Order = [];
 
     // filtros exatos
