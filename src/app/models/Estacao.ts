@@ -11,6 +11,7 @@ interface AtributosEstacao {
   nome: string;
   localizacao: Localizacao;
   api_key: string;
+  usuario_proprietario_id: number;
 }
 
 interface CriacaoEstacaoAtributos
@@ -25,6 +26,8 @@ class Estacao
   declare localizacao: Localizacao;
   declare api_key: string;
   declare hasUsuario: BelongsToManyHasAssociationMixin<Usuario, number>;
+  declare usuario_proprietario_id: number;
+  declare proprietario?: Usuario;
 
   static initModel(sequelize: Sequelize) {
     return super.init(
@@ -32,6 +35,7 @@ class Estacao
         nome: DataTypes.STRING,
         localizacao: DataTypes.GEOGRAPHY("POINT", 4326),
         api_key: DataTypes.STRING,
+        usuario_proprietario_id: DataTypes.INTEGER,
       },
       {
         sequelize,
@@ -49,7 +53,12 @@ class Estacao
     this.belongsToMany(models.Usuario, {
       through: "usuarios_estacoes",
       foreignKey: "estacao_id",
-      as: "usuarios",
+      as: "equipe",
+    });
+
+    this.belongsTo(models.Usuario, {
+      foreignKey: "usuario_proprietario_id",
+      as: "proprietario",
     });
   }
 }

@@ -1,7 +1,7 @@
 import { WhereOptions, Order } from "sequelize";
-import { parseISO } from "date-fns";
 import * as Yup from "yup";
 import { Request, Response } from "express";
+import database from "../../database/index.js";
 import crypto from "crypto";
 
 import Estacao from "../models/Estacao.js";
@@ -41,7 +41,7 @@ class EstacoesController {
     const page = Number(req.query.page) || 1;
     const limit = Math.min(Number(req.query.limit) || 25, 100);
 
-    const where: WhereOptions = {};
+    const where: WhereOptions<any> = {};
     const order: Order = construirOrdenacao(sort);
 
     adicionarFiltroLike(where, "nome", nome);
@@ -55,8 +55,6 @@ class EstacoesController {
     );
 
     if (atualizado) (where as any).atualizado_em = atualizado;
-
-    order = construirOrdenacao(sort);
 
     const estacoes = await Estacao.findAll({
       where,
@@ -79,9 +77,19 @@ class EstacoesController {
     const estacao = await Estacao.findByPk(req.params.id, {
       include: [
         {
+          model: Usuario,
+          as: "proprietario",
+          attributes: ["id", "nome", "email"],
+        },
+        {
+          model: Usuario,
+          as: "equipe",
+          attributes: ["id", "nome", "email"],
+          through: { attributes: ["papel"] },
+        },
+        {
           model: Leitura,
           as: "leituras",
-          attributes: ["id", "estacao_id"],
         },
       ],
     });
@@ -94,46 +102,48 @@ class EstacoesController {
   }
 
   async create(req: Request, res: Response) {
-    const schema = Yup.object().shape({
-      nome: Yup.string().required(),
-      localizacao: Yup.object({
-        longitude: Yup.number().required().min(-180).max(180),
-        latitude: Yup.number().required().min(-90).max(90),
-      }).required(),
-    });
+    const transaction = await database.connection.transaction();
 
-    const { body } = req;
+    try {
+      const { nome, localizacao } = req.body;
+      const { latitude, longitude } = localizacao;
+      const apiKey = crypto.randomUUID();
 
-    if (!(await schema.isValid(body))) {
-      return res.status(400).json({ erro: "Erro ao validar schema." });
+      const novaEstacao = await Estacao.create(
+        {
+          nome,
+          api_key: apiKey,
+          usuario_proprietario_id: req.userId,
+          localizacao: {
+            type: "Point",
+            coordinates: [longitude, latitude],
+          },
+        },
+        { transaction }
+      );
+
+      console.log("USER ID", req.userId);
+
+      const usuario = await Usuario.findByPk(req.userId, { transaction });
+
+      if (!usuario) {
+        await transaction.rollback();
+        return res.status(404).json({ erro: "Usuario não encontrado." });
+      }
+
+      await novaEstacao.addUsuario(usuario, {
+        through: { papel: "PROPRIETARIO" },
+        transaction,
+      });
+
+      await transaction.commit();
+
+      return res.status(201).json(novaEstacao);
+    } catch (err) {
+      await transaction.rollback();
+      console.error(err);
+      return res.status(500).json({ erro: "Erro ao criar estação." });
     }
-
-    const {
-      nome,
-      localizacao: { longitude, latitude },
-    } = body;
-
-    const apiKey = crypto.randomBytes(32).toString("hex");
-
-    const novaEstacao = await Estacao.create({
-      nome,
-      api_key: apiKey,
-      usuario_proprietario_id: req.userId,
-      localizacao: {
-        type: "Point",
-        coordinates: [longitude, latitude],
-      },
-    });
-
-    const usuario = await Usuario.findByPk(req.userId);
-
-    if (!usuario) {
-      return res.status(404).json({ erro: "Usuario não encontrado." });
-    }
-
-    await usuario.addEstacoes([novaEstacao]);
-
-    return res.status(201).json(novaEstacao);
   }
 
   async update(req: Request<Params>, res: Response) {

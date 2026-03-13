@@ -1,9 +1,11 @@
-import { Request, Response } from "sequelize";
+import { Request, Response } from "express";
 import Queue from "../../lib/Queue.js";
 import NotificarProprietarioJob from "../jobs/NotificarProprietarioJob.js";
+import crypto from "crypto";
 
 import Estacao from "../models/Estacao.js";
-import Usuario from "../models/Usuario.js";
+import ConviteEstacao from "../models/ConviteEstacao.js";
+import UsuarioEstacao from "../models/UsuarioEstacao.js";
 
 interface Params {
   estacaoId: string;
@@ -14,10 +16,18 @@ class ConvitesController {
     const { estacaoId } = req.params;
     const usuarioId = req.userId;
 
+    const token = crypto.randomUUID();
+
     const estacao = await Estacao.findByPk(estacaoId);
 
     if (!estacao) {
       return res.status(404).json();
+    }
+
+    if (estacao.usuario_proprietario_id === usuarioId) {
+      return res.status(403).json({
+        erro: "O proprietário não pode solicitar acesso à própria estação",
+      });
     }
 
     const conviteExistente = await ConviteEstacao.findOne({
@@ -37,18 +47,23 @@ class ConvitesController {
       usuario_id: usuarioId,
       estacao_id: estacaoId,
       status: "PENDENTE",
+      token,
     });
 
     await Queue.add(NotificarProprietarioJob.key, {
       estacaoId,
       usuarioId,
+      conviteId: convite.id,
+      token: convite.token,
     });
 
     return res.status(201).json(convite);
   }
 
   async aceitar(req: Request, res: Response) {
-    const convite = await ConviteEstacao.findByPk(req.params.id);
+    const convite = await ConviteEstacao.findOne({
+      where: { token: req.params.token },
+    });
 
     if (!convite) {
       return res.status(404).json();
@@ -82,7 +97,9 @@ class ConvitesController {
   }
 
   async rejeitar(req: Request, res: Response) {
-    const convite = await ConviteEstacao.findByPk(req.params.id);
+    const convite = await ConviteEstacao.findOne({
+      where: { token: req.params.token },
+    });
 
     if (!convite) {
       return res.status(404).json();

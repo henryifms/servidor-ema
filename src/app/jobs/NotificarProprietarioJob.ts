@@ -9,16 +9,34 @@ class NotificarProprietarioJob {
   }
 
   async handle({ data }) {
-    const { estacaoId, usuarioId } = data;
+    const { estacaoId, usuarioId, token } = data;
 
     const estacao = await Estacao.findByPk(estacaoId);
-    const usuario = await Usuario.findByPk(usuarioId);
+    const usuarioSolicitante = await Usuario.findByPk(usuarioId);
+
+    const proprietario = await Usuario.findByPk(
+      estacao.usuario_proprietario_id
+    );
 
     await Mail.send({
-      to: estacao.proprietario.email,
+      to: proprietario.email,
       subject: "Pedido de acesso à estação",
       html: `
-      ${usuario.nome} solicitou acesso à estação ${estacao.nome}
+      <p>${usuarioSolicitante.nome} solicitou acesso à estação ${estacao.nome}</p>
+
+      <p>
+        <a href="http://localhost:3000/convites/${token}/aceitar">
+          Aceitar acesso: 
+        </a>
+        <p>http://localhost:3000/convites/${token}/aceitar</p>
+      </p>
+
+      <p>
+        <a href="http://localhost:3000/convites/${token}/rejeitar">
+          Rejeitar acesso: 
+        </a>
+        <p>http://localhost:3000/convites/${token}/rejeitar</p>
+      </p>
       `,
     });
   }

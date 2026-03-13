@@ -1,19 +1,33 @@
 import { Model, DataTypes } from "sequelize";
-import sequelize from "../../database";
 
-class UsuarioEstacao extends Model {}
+class UsuarioEstacao extends Model {
+  static initModel(sequelize) {
+    super.init(
+      {
+        usuario_id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
 
-UsuarioEstacao.init(
-  {
-    usuario_id: DataTypes.INTEGER,
-    estacao_id: DataTypes.INTEGER,
-    papel: DataTypes.STRING,
-    status: DataTypes.STRING,
-  },
-  {
-    sequelize,
-    tableName: "usuarios_estacoes",
+        estacao_id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+
+        papel: {
+          type: DataTypes.STRING,
+        },
+      },
+      {
+        sequelize,
+        tableName: "usuarios_estacoes",
+        timestamps: true,
+        createdAt: "criado_em",
+        updatedAt: "atualizado_em",
+        id: false,
+      }
+    );
   }
-);
+}
 
 export default UsuarioEstacao;

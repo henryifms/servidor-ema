@@ -2,13 +2,14 @@ import { Router } from "express";
 
 import authMiddleware from "../app/middlewares/auth.js";
 import apiKey from "../app/middlewares/apiKeys.js";
+import { verificarProprietario } from "../app/middlewares/verificarProprietario.js";
 
 import sessions from "../app/controllers/SessionsController.js";
 import usuarios from "../app/controllers/UsuariosController.js";
 import estacoes from "../app/controllers/EstacoesController.js";
 import leituras from "../app/controllers/LeiturasController.js";
 import password from "../app/controllers/PasswordController.js";
-import convites from "../app/controllers/ConvitesController";
+import convites from "../app/controllers/ConvitesController.js";
 
 const routes = Router();
 
@@ -69,9 +70,13 @@ routes.delete("/estacoes/:id", estacoes.destroy);
 // https://api.com/convites/TOKEN/aceitar
 
 routes.post("/estacoes/:estacaoId/convites", convites.solicitar);
-routes.get("/convites", convites.listar);
-routes.post("/convites/:id/aceitar", convites.aceitar);
-routes.post("/convites/:id/rejeitar", convites.rejeitar);
+routes.get(
+  "/estacoes/:estacaoId/convites",
+  verificarProprietario,
+  convites.listar
+);
+routes.post("/convites/:token/aceitar", convites.aceitar);
+routes.post("/convites/:token/rejeitar", convites.rejeitar);
 
 /*
 LEITURAS

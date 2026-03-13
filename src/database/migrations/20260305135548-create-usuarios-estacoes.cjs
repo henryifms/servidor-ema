@@ -44,7 +44,7 @@ module.exports = {
   async down(queryInterface) {
     await queryInterface.dropTable("usuarios_estacoes");
     await queryInterface.sequelize.query(
-      'DROP TYPE IF EXISTS "enum_usuarios_estacoes_role";'
+      'DROP TYPE IF EXISTS "enum_usuarios_estacoes_papel";'
     );
   },
 };

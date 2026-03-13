@@ -27,7 +27,8 @@ export default async (req: Request, res: Response, next: NextFunction) => {
     const decoded = jwt.verify(token, auth.secret) as unknown as JwtPayload;
     req.userId = decoded.id;
     return next();
-  } catch (erro) {
+  } catch (err) {
+    console.error(err);
     return res.status(401).json({ erro: "Token inválido." });
   }
 };
