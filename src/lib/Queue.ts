@@ -5,8 +5,14 @@ import "dotenv/config";
 import WelcomeEmailJob from "../app/jobs/WelcomeEmailJob.js";
 import ResetPasswordJob from "../app/jobs/ResetPasswordJob.js";
 import SaveLeituraJob from "../app/jobs/SaveLeituraJob.js";
+import NotificarProprietarioJob from "../app/jobs/NotificarProprietarioJob.js";
 
-const jobs = [WelcomeEmailJob, ResetPasswordJob, SaveLeituraJob];
+const jobs = [
+  WelcomeEmailJob,
+  ResetPasswordJob,
+  SaveLeituraJob,
+  NotificarProprietarioJob,
+];
 
 class Queue {
   constructor() {

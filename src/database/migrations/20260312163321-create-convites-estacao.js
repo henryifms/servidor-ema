@@ -35,6 +35,22 @@ module.exports = {
         defaultValue: "PENDENTE",
       },
 
+      convidado_por: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: "usuarios",
+          key: "id",
+        },
+        onDelete: "SET NULL",
+        onUpdate: "CASCADE",
+      },
+
+      token: {
+        type: Sequelize.STRING,
+        unique: true,
+      },
+
       criado_em: {
         type: Sequelize.DATE,
         allowNull: false,

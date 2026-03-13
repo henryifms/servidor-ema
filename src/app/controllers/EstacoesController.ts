@@ -28,7 +28,7 @@ interface Query {
 }
 
 class EstacoesController {
-  async index(req: Request<{}, {}, {}, Query>, res: Response) {
+  async index(req: Request<object, object, object, Query>, res: Response) {
     const {
       nome,
       criadoAntes,
@@ -188,7 +188,7 @@ class EstacoesController {
     return res.json(estacao);
   }
   async destroy(req: Request<Params>, res: Response) {
-    const estacao = await Estacao.findByPk(req.params.id)
+    const estacao = await Estacao.findByPk(req.params.id);
 
     if (!estacao) {
       return res.status(404).json();

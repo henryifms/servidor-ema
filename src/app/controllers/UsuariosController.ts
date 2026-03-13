@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Order, WhereOptions } from "sequelize";
+import { WhereOptions } from "sequelize";
 import * as Yup from "yup";
 
 import Usuario from "../models/Usuario.js";
@@ -13,28 +13,28 @@ import Queue from "../../lib/Queue.js";
 import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
 
 interface UsuarioIdParam {
-  id: string
+  id: string;
 }
 
 interface UsuarioEstacaoParams {
-  usuarioId: string
-  estacaoId: string
+  usuarioId: string;
+  estacaoId: string;
 }
 
 interface Query {
-  nome?: string,
-  email?: string,
-  criadoAntes?: string,
-  criadoDepois?: string,
-  atualizadoAntes?: string,
-  atualizadoDepois?: string,
-  sort?: string,
-  page?: string,
-  limit?: string,
+  nome?: string;
+  email?: string;
+  criadoAntes?: string;
+  criadoDepois?: string;
+  atualizadoAntes?: string;
+  atualizadoDepois?: string;
+  sort?: string;
+  page?: string;
+  limit?: string;
 }
 
 class UsuariosController {
-  async index(req: Request<{}, {}, {}, Query>, res: Response) {
+  async index(req: Request<object, object, object, Query>, res: Response) {
     const {
       nome,
       email,
@@ -56,7 +56,11 @@ class UsuariosController {
     const criado = construirIntervaloData(criadoAntes, criadoDepois);
     if (criado) (where as any).criado_em = criado;
 
-    const atualizado = construirIntervaloData(atualizadoAntes, atualizadoDepois);
+    const atualizado = construirIntervaloData(
+      atualizadoAntes,
+      atualizadoDepois
+    );
+
     if (atualizado) (where as any).atualizado_em = atualizado;
 
     const usuarios = await Usuario.findAll({
@@ -163,33 +167,6 @@ class UsuariosController {
     await usuario.destroy();
 
     return res.json();
-  }
-
-  async adicionarEstacao(req: Request<UsuarioEstacaoParams>, res: Response) {
-    const { usuarioId, estacaoId } = req.params;
-
-    const usuario = await Usuario.findByPk(usuarioId);
-    const estacao = await Estacao.findByPk(estacaoId);
-
-    if (!usuario || !estacao) {
-      return res
-        .status(404)
-        .json({ erro: "Usuário ou estação não encontrado." });
-    }
-
-    if (!req.userId) {
-      return res.status(401).json({ erro: "Usuário não autenticado." });
-    }
-
-    if (Number(usuarioId) !== req.userId) {
-      return res.status(403).json({ erro: "Sem permissão." });
-    }
-
-    console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(usuario)));
-
-    await usuario.addEstacao(estacao);
-
-    return res.status(204).send();
   }
 }
 

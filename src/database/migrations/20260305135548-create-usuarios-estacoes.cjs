@@ -23,7 +23,7 @@ module.exports = {
         onDelete: "CASCADE",
       },
 
-      role: {
+      papel: {
         type: Sequelize.ENUM("PROPRIETARIO", "ADMIN", "MEMBRO"),
         allowNull: false,
         defaultValue: "MEMBRO",
