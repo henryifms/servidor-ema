@@ -1,4 +1,4 @@
-import { Op, WhereOptions, Order } from "sequelize";
+import { WhereOptions, Order } from "sequelize";
 import { parseISO } from "date-fns";
 import * as Yup from "yup";
 import { Request, Response } from "express";
@@ -42,14 +42,18 @@ class EstacoesController {
     const limit = Math.min(Number(req.query.limit) || 25, 100);
 
     const where: WhereOptions = {};
-    let order: Order = [];
+    const order: Order = construirOrdenacao(sort);
 
     adicionarFiltroLike(where, "nome", nome);
 
     const criado = construirIntervaloData(criadoAntes, criadoDepois);
     if (criado) (where as any).criado_em = criado;
 
-    const atualizado = construirIntervaloData(atualizadoAntes, atualizadoDepois);
+    const atualizado = construirIntervaloData(
+      atualizadoAntes,
+      atualizadoDepois
+    );
+
     if (atualizado) (where as any).atualizado_em = atualizado;
 
     order = construirOrdenacao(sort);
@@ -81,7 +85,6 @@ class EstacoesController {
         },
       ],
     });
-
 
     if (!estacao) {
       return res.status(404).json();
@@ -115,6 +118,7 @@ class EstacoesController {
     const novaEstacao = await Estacao.create({
       nome,
       api_key: apiKey,
+      usuario_proprietario_id: req.userId,
       localizacao: {
         type: "Point",
         coordinates: [longitude, latitude],
@@ -124,7 +128,7 @@ class EstacoesController {
     const usuario = await Usuario.findByPk(req.userId);
 
     if (!usuario) {
-      return res.status(404).json({ erro: "Usuario não encontrado." })
+      return res.status(404).json({ erro: "Usuario não encontrado." });
     }
 
     await usuario.addEstacoes([novaEstacao]);

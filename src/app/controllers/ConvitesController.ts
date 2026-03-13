@@ -1,15 +1,16 @@
+import { Request, Response } from "sequelize";
 import Queue from "../../lib/Queue.js";
 import NotificarProprietarioJob from "../jobs/NotificarProprietarioJob.js";
 
 import Estacao from "../models/Estacao.js";
 import Usuario from "../models/Usuario.js";
 
-interface SolicitarParams {
+interface Params {
   estacaoId: string;
 }
 
 class ConvitesController {
-  async solicitar(req: Request<SolicitarParams>, res: Response) {
+  async solicitar(req: Request<Params>, res: Response) {
     const { estacaoId } = req.params;
     const usuarioId = req.userId;
 
@@ -65,24 +66,30 @@ class ConvitesController {
 
     return res.json();
   }
-  async aceitar(req, res) {
 
-    const convite = await ConviteEstacao.findOne({
-      where: { token: req.params.token },
+  async listar(req: Request<Params>, res: Response) {
+    const { estacaoId } = req.params;
+
+    const convites = await ConviteEstacao.findAll({
+      where: { estacao_id: estacaoId },
     });
+
+    if (!convites) {
+      return res.status(404).json({ erro: "Nenhum convite" });
+    }
+
+    return res.json(convites);
+  }
+
+  async rejeitar(req: Request, res: Response) {
+    const convite = await ConviteEstacao.findByPk(req.params.id);
 
     if (!convite) {
       return res.status(404).json();
     }
 
     await convite.update({
-      status: "ACEITO",
-    });
-
-    await UsuarioEstacao.create({
-      usuario_id: convite.usuario_id,
-      estacao_id: convite.estacao_id,
-      papel: "MEMBRO",
+      status: "REJEITADO",
     });
 
     return res.json();

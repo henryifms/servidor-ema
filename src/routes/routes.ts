@@ -8,7 +8,7 @@ import usuarios from "../app/controllers/UsuariosController.js";
 import estacoes from "../app/controllers/EstacoesController.js";
 import leituras from "../app/controllers/LeiturasController.js";
 import password from "../app/controllers/PasswordController.js";
-import convites from "../app/controllers/ConvitesController.js";
+import convites from "../app/controllers/ConvitesController";
 
 const routes = Router();
 
@@ -69,7 +69,7 @@ routes.delete("/estacoes/:id", estacoes.destroy);
 // https://api.com/convites/TOKEN/aceitar
 
 routes.post("/estacoes/:estacaoId/convites", convites.solicitar);
-routes.get("/estacoes/:estacaoId/convites", convites.index);
+routes.get("/convites", convites.listar);
 routes.post("/convites/:id/aceitar", convites.aceitar);
 routes.post("/convites/:id/rejeitar", convites.rejeitar);
 
