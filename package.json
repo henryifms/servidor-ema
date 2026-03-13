@@ -32,6 +32,8 @@
     "redis": "^4.7.0",
     "resend": "^6.9.3",
     "sequelize": "^6.37.5",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "yup": "^1.6.1"
   },
   "devDependencies": {
@@ -41,6 +43,7 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^25.4.0",
     "@types/sequelize": "^4.28.20",
+    "@types/swagger-jsdoc": "^6",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",

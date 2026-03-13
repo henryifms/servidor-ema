@@ -1,7 +1,9 @@
 import "dotenv/config";
 import express, { Express, Request, Response, NextFunction } from "express";
-import routes from "./routes/routes.js";
+import routes from "./routes/routes";
 import "./database/index.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
 
 class App {
   public server: Express;
@@ -19,6 +21,7 @@ class App {
   }
 
   routes() {
+    this.server.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     this.server.use(routes);
   }
 
