@@ -113,7 +113,7 @@ class EstacoesController {
         {
           nome,
           api_key: apiKey,
-          usuario_proprietario_id: req.userId,
+          usuario_proprietario_id: Number(req.userId),
           localizacao: {
             type: "Point",
             coordinates: [longitude, latitude],
@@ -131,7 +131,7 @@ class EstacoesController {
         return res.status(404).json({ erro: "Usuario não encontrado." });
       }
 
-      await novaEstacao.addUsuario(usuario, {
+      await novaEstacao.addEquipe(usuario, {
         through: { papel: "PROPRIETARIO" },
         transaction,
       });

@@ -28,14 +28,12 @@ class NotificarProprietarioJob {
         <a href="http://localhost:3000/convites/${token}/aceitar">
           Aceitar acesso: 
         </a>
-        <p>http://localhost:3000/convites/${token}/aceitar</p>
       </p>
 
       <p>
         <a href="http://localhost:3000/convites/${token}/rejeitar">
           Rejeitar acesso: 
         </a>
-        <p>http://localhost:3000/convites/${token}/rejeitar</p>
       </p>
       `,
     });

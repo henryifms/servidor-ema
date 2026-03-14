@@ -25,7 +25,7 @@ class Estacao
   declare nome: string;
   declare localizacao: Localizacao;
   declare api_key: string;
-  declare hasUsuario: BelongsToManyHasAssociationMixin<Usuario, number>;
+  declare addEquipe: BelongsToManyHasAssociationMixin<Usuario, number>;
   declare usuario_proprietario_id: number;
   declare proprietario?: Usuario;
 

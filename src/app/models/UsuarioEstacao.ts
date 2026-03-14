@@ -24,7 +24,6 @@ class UsuarioEstacao extends Model {
         timestamps: true,
         createdAt: "criado_em",
         updatedAt: "atualizado_em",
-        id: false,
       }
     );
   }
