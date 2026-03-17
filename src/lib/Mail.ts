@@ -7,13 +7,15 @@ class Mail {
   }
 
   async send({ to, subject, html, text }) {
-    return this.resend.emails.send({
+    const response = await this.resend.emails.send({
       from: mailConfig.from,
       to,
       subject,
       html,
       text,
     });
+    console.log("EMAIL RESPONSE:", response);
+    return response;
   }
 }
 

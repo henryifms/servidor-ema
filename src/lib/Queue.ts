@@ -6,11 +6,13 @@ import WelcomeEmailJob from "../app/jobs/WelcomeEmailJob.js";
 import ResetPasswordJob from "../app/jobs/ResetPasswordJob.js";
 import SaveLeituraJob from "../app/jobs/SaveLeituraJob.js";
 import NotificarProprietarioJob from "../app/jobs/NotificarProprietarioJob.js";
+import WelcomeToBackJob from "../app/jobs/WelcomeToBackJob.js";
 
 const jobs = [
   WelcomeEmailJob,
-  ResetPasswordJob,
+  WelcomeToBackJob,
   SaveLeituraJob,
+  ResetPasswordJob,
   NotificarProprietarioJob,
 ];
 

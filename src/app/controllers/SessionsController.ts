@@ -3,6 +3,9 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { Request, Response } from "express";
 import auth from "../../config/auth.js";
 
+import Queue from "../../lib/Queue.js";
+import WelcomeToBackJob from "../jobs/WelcomeToBackJob.js";
+
 class SessionsController {
   async create(req: Request, res: Response) {
     const { email, password } = req.body;
@@ -18,6 +21,8 @@ class SessionsController {
     }
 
     const { id, nome } = usuario;
+
+    await Queue.add(WelcomeToBackJob.key, { nome, email });
 
     return res.json({
       user: { id, nome, email },

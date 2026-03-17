@@ -1,14 +1,14 @@
-import Mail from "../../lib/Mail.ts";
+import Mail from "../../lib/Mail.js";
 
 class WelcomeMailJob {
   get key() {
-    return "WelcomeEmail"
+    return "WelcomeEmail";
   }
 
   async handle({ data }) {
     const { nome, email } = data;
 
-    Mail.send({
+    await Mail.send({
       to: email,
       subject: `Bem vindo(a) - ${email}`,
       html: `<h1> Olá ${nome}.</h1><p>Bem-vindo(a) ao sistema EMA!</p>`,
