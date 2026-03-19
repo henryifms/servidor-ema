@@ -1,9 +1,10 @@
 import "dotenv/config";
 import express, { Express, Request, Response, NextFunction } from "express";
-import routes from "./routes/routes";
+import routes from "./routes/routes.js";
 import "./database/index.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
+import cors from "cors";
 
 class App {
   public server: Express;
@@ -16,6 +17,7 @@ class App {
   }
 
   middlewares() {
+    this.server.use(cors());
     this.server.use(express.json());
     this.server.use(express.urlencoded({ extended: false }));
   }

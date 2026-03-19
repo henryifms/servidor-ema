@@ -17,6 +17,34 @@ const routes = Router();
 AUTH
 */
 
+/*
+   ESTAÇÕES
+   */
+
+/**
+ * @swagger
+ * /estacoes:
+ *   get:
+ *     summary: Lista todas as estações
+ *     tags: [Estacoes]
+ *     security:
+ *       - bearerAuth: []
+ */
+
+routes.get("/estacoes", estacoes.index);
+
+/**
+ * @swagger
+ * /estacoes/:id:
+ *   get:
+ *     summary: Lista uma estação pelo id.
+ *     tags: [Estacoes]
+ *     responses:
+ *       200:
+ *         description: Estação encontrada
+ */
+routes.get("/estacoes/:id", estacoes.show);
+
 /**
  * @swagger
  * /login:
@@ -153,33 +181,6 @@ routes.put("/usuarios/:id", usuarios.update);
  */
 routes.delete("/usuarios/:id", usuarios.destroy);
 
-/*
-ESTAÇÕES
-*/
-
-/**
- * @swagger
- * /estacoes:
- *   get:
- *     summary: Lista todas as estações
- *     tags: [Estacoes]
- *     security:
- *       - bearerAuth: []
- */
-
-routes.get("/estacoes", estacoes.index);
-
-/**
- * @swagger
- * /estacoes/:id:
- *   get:
- *     summary: Lista uma estação pelo id.
- *     tags: [Estacoes]
- *     responses:
- *       200:
- *         description: Estação encontrada
- */
-routes.get("/estacoes/:id", estacoes.show);
 
 /**
  * @swagger
