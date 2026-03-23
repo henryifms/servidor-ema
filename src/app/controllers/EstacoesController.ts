@@ -65,6 +65,17 @@ class EstacoesController {
           as: "leituras",
           attributes: ["id", "estacao_id"],
         },
+        {
+          model: Usuario,
+          as: "proprietario",
+          attributes: ["id", "nome", "email"],
+        },
+        {
+          model: Usuario,
+          as: "equipe",
+          attributes: ["id", "nome", "email"],
+          through: { attributes: ["papel"] },
+        },
       ],
       order,
       limit,

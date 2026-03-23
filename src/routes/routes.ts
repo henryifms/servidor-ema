@@ -31,6 +31,18 @@ AUTH
  *       - bearerAuth: []
  */
 
+/**
+ * @swagger
+ * /usuarios:
+ *   get:
+ *     summary: Lista todos os usuários.
+ *     tags: [Usuarios]
+ *     responses:
+ *       200:
+ *         description: Lista de usuários
+ */
+routes.get("/usuarios", usuarios.index);
+
 routes.get("/estacoes", estacoes.index);
 
 /**
@@ -124,17 +136,6 @@ ROTAS PROTEGIDAS (JWT)
 
 routes.use(authMiddleware);
 
-/**
- * @swagger
- * /usuarios:
- *   get:
- *     summary: Lista todos os usuários.
- *     tags: [Usuarios]
- *     responses:
- *       200:
- *         description: Lista de usuários
- */
-routes.get("/usuarios", usuarios.index);
 
 /**
  * @swagger
