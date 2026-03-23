@@ -9,6 +9,7 @@ interface Localizacao {
 interface AtributosEstacao {
   id?: number;
   nome: string;
+  endereco: string;
   localizacao: Localizacao;
   api_key: string;
   usuario_proprietario_id: number;
@@ -24,6 +25,7 @@ class Estacao
   declare id?: number;
   declare nome: string;
   declare localizacao: Localizacao;
+  declare endereco: string;
   declare api_key: string;
   declare addEquipe: BelongsToManyHasAssociationMixin<Usuario, number>;
   declare usuario_proprietario_id: number;
@@ -34,6 +36,7 @@ class Estacao
       {
         nome: DataTypes.STRING,
         localizacao: DataTypes.GEOGRAPHY("POINT", 4326),
+        endereco: DataTypes.STRING,
         api_key: DataTypes.STRING,
         usuario_proprietario_id: DataTypes.INTEGER,
       },

@@ -20,6 +20,11 @@ module.exports = {
         allowNull: false,
       },
 
+      endereco: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+
       usuario_proprietario_id: {
         type: Sequelize.INTEGER,
         allowNull: false,

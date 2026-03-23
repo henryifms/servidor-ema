@@ -11,6 +11,7 @@ import Usuario from "../models/Usuario.js";
 import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
 import construirIntervaloData from "../utils/construirIntervaloData.js";
 import construirOrdenacao from "../utils/construirOrdenacao.js";
+import { processarLocalizacao } from "../../lib/geolocalizacao.js";
 
 interface Params {
   id: string;
@@ -105,18 +106,30 @@ class EstacoesController {
     const transaction = await database.connection.transaction();
 
     try {
-      const { nome, localizacao } = req.body;
-      const { latitude, longitude } = localizacao;
+      const { nome, localizacao, endereco } = req.body;
+
       const apiKey = crypto.randomUUID();
+
+      const data = await processarLocalizacao({
+        endereco,
+        coordinates: localizacao?.coordinates
+          ? localizacao.coordinates
+          : localizacao
+            ? [localizacao.longitude, localizacao.latitude]
+            : undefined,
+      });
 
       const novaEstacao = await Estacao.create(
         {
           nome,
           api_key: apiKey,
           usuario_proprietario_id: Number(req.userId),
+
+          endereco: data.endereco,
+
           localizacao: {
             type: "Point",
-            coordinates: [longitude, latitude],
+            coordinates: data.coordinates,
           },
         },
         { transaction }
@@ -139,10 +152,13 @@ class EstacoesController {
       await transaction.commit();
 
       return res.status(201).json(novaEstacao);
-    } catch (err) {
+    } catch (err: any) {
       await transaction.rollback();
       console.error(err);
-      return res.status(500).json({ erro: "Erro ao criar estação." });
+
+      return res.status(400).json({
+        erro: err.message || "Erro ao criar estação.",
+      });
     }
   }
 
