@@ -6,9 +6,6 @@ export default function construirOrdenacao(sort?: string): Order {
   return sort.split(",").map((item) => {
     const [campo, direcao] = item.split(":");
 
-    return [
-      campo,
-      direcao?.toUpperCase() === "DESC" ? "DESC" : "ASC",
-    ];
+    return [campo, direcao?.toUpperCase() === "DESC" ? "DESC" : "ASC"];
   });
 }

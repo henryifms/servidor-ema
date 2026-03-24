@@ -4,7 +4,7 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "API de Estações Metereológicas",
+      title: "API de Estações Meteorológicas",
       version: "1.0.0",
       description: "API do sistema EMA",
     },

@@ -1,4 +1,9 @@
-import { Sequelize, DataTypes, Model, BelongsToManyAddAssociationMixin } from "sequelize";
+import {
+  Sequelize,
+  DataTypes,
+  Model,
+  BelongsToManyAddAssociationMixin,
+} from "sequelize";
 import bcrypt from "bcryptjs";
 import Estacao from "./Estacao.js";
 

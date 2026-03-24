@@ -28,6 +28,8 @@ interface Query {
   limit?: string;
 }
 
+const STATUS = ["ATIVA", "INATIVA", "MANUTENCAO"] as const;
+
 class EstacoesController {
   async index(req: Request<object, object, object, Query>, res: Response) {
     const {
@@ -60,11 +62,7 @@ class EstacoesController {
     const estacoes = await Estacao.findAll({
       where,
       include: [
-        {
-          model: Leitura,
-          as: "leituras",
-          attributes: ["id", "estacao_id"],
-        },
+        { model: Leitura, as: "leituras", attributes: ["id", "estacao_id"] },
         {
           model: Usuario,
           as: "proprietario",
@@ -99,54 +97,89 @@ class EstacoesController {
           attributes: ["id", "nome", "email"],
           through: { attributes: ["papel"] },
         },
-        {
-          model: Leitura,
-          as: "leituras",
-        },
+        { model: Leitura, as: "leituras" },
       ],
     });
 
-    if (!estacao) {
-      return res.status(404).json();
-    }
+    if (!estacao) return res.status(404).json();
 
     return res.json(estacao);
   }
 
   async create(req: Request, res: Response) {
-    const transaction = await database.connection.transaction();
+    let transaction;
 
     try {
-      const { nome, localizacao, endereco } = req.body;
+      const schema = Yup.object()
+        .shape({
+          nome: Yup.string().trim().required(),
+
+          endereco: Yup.string().nullable(),
+
+          localizacao: Yup.object({
+            latitude: Yup.number().min(-90).max(90),
+            longitude: Yup.number().min(-180).max(180),
+          }).nullable(),
+
+          status: Yup.string()
+            .transform((v) => v?.toUpperCase())
+            .oneOf(STATUS)
+            .default("INATIVA"),
+        })
+        .test(
+          "endereco-ou-coordenadas",
+          "Informe endereco ou localizacao válida.",
+          (value) => {
+            if (!value) return false;
+
+            const temEndereco = !!value.endereco;
+
+            const temCoords =
+              value.localizacao &&
+              value.localizacao.latitude != null &&
+              value.localizacao.longitude != null;
+
+            return temEndereco || temCoords;
+          }
+        );
+
+      const validated = await schema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+
+      const { nome, localizacao, endereco, status } = validated;
+
+      transaction = await database.connection.transaction();
 
       const apiKey = crypto.randomUUID();
 
       const data = await processarLocalizacao({
         endereco,
-        coordinates: localizacao?.coordinates
-          ? localizacao.coordinates
-          : localizacao
-            ? [localizacao.longitude, localizacao.latitude]
-            : undefined,
+        coordinates: localizacao
+          ? [localizacao.longitude, localizacao.latitude]
+          : undefined,
       });
+
+      if (!req.userId) {
+        await transaction.rollback();
+        return res.status(401).json({ erro: "Não autenticado." });
+      }
 
       const novaEstacao = await Estacao.create(
         {
           nome,
           api_key: apiKey,
           usuario_proprietario_id: Number(req.userId),
-
           endereco: data.endereco,
-
           localizacao: {
             type: "Point",
             coordinates: data.coordinates,
           },
+          status: status || "INATIVA",
         },
         { transaction }
       );
-
-      console.log("USER ID", req.userId);
 
       const usuario = await Usuario.findByPk(req.userId, { transaction });
 
@@ -164,8 +197,7 @@ class EstacoesController {
 
       return res.status(201).json(novaEstacao);
     } catch (err: any) {
-      await transaction.rollback();
-      console.error(err);
+      if (transaction) await transaction.rollback();
 
       return res.status(400).json({
         erro: err.message || "Erro ao criar estação.",
@@ -176,51 +208,58 @@ class EstacoesController {
   async update(req: Request<Params>, res: Response) {
     const estacao = await Estacao.findByPk(req.params.id);
 
-    if (!estacao) {
-      return res.status(404).json();
-    }
+    if (!estacao) return res.status(404).json();
 
     const schema = Yup.object().shape({
       nome: Yup.string(),
+
+      endereco: Yup.string(),
+
+      status: Yup.string()
+        .transform((v) => v?.toUpperCase())
+        .oneOf(STATUS),
+
       localizacao: Yup.object({
         longitude: Yup.number().min(-180).max(180),
         latitude: Yup.number().min(-90).max(90),
       }),
     });
 
-    const { body } = req;
-
-    if (!(await schema.isValid(body))) {
-      return res.status(400).json({ erro: "Erro ao validar schema." });
-    }
+    const validated = await schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
     const updateData: Partial<{
       nome: string;
+      endereco: string;
+      status: string;
       localizacao: {
         type: "Point";
         coordinates: [number, number];
       };
     }> = {};
 
-    if (body.nome) {
-      updateData.nome = body.nome;
-    }
+    if (validated.nome) updateData.nome = validated.nome;
 
-    if (body.localizacao) {
-      if (
-        body.localizacao.latitude == null ||
-        body.localizacao.longitude == null
-      ) {
-        return res.status(400).json({
-          error: "A latitude e a longitude devem ser fornecidas juntas.",
-        });
-      }
+    if (validated.status)
+      updateData.status = validated.status.toUpperCase();
 
-      const { latitude, longitude } = body.localizacao;
+    if (validated.endereco || validated.localizacao) {
+      const data = await processarLocalizacao({
+        endereco: validated.endereco,
+        coordinates: validated.localizacao
+          ? [
+              validated.localizacao.longitude,
+              validated.localizacao.latitude,
+            ]
+          : undefined,
+      });
 
+      updateData.endereco = data.endereco;
       updateData.localizacao = {
         type: "Point",
-        coordinates: [longitude, latitude],
+        coordinates: data.coordinates,
       };
     }
 
@@ -228,12 +267,11 @@ class EstacoesController {
 
     return res.json(estacao);
   }
+
   async destroy(req: Request<Params>, res: Response) {
     const estacao = await Estacao.findByPk(req.params.id);
 
-    if (!estacao) {
-      return res.status(404).json();
-    }
+    if (!estacao) return res.status(404).json();
 
     await estacao.destroy();
 
@@ -242,3 +280,4 @@ class EstacoesController {
 }
 
 export default new EstacoesController();
+

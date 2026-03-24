@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("leituras_metereologicas", {
+    await queryInterface.createTable("leituras_meteorologicas", {
       id: {
         type: Sequelize.BIGINT,
         primaryKey: true,
@@ -14,7 +14,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "estacoes_metereologicas",
+          model: "estacoes_meteorologicas",
           key: "id",
         },
         onDelete: "CASCADE",
@@ -47,13 +47,13 @@ module.exports = {
       },
     });
 
-    await queryInterface.addIndex("leituras_metereologicas", [
+    await queryInterface.addIndex("leituras_meteorologicas", [
       "estacao_id",
       "data_leitura",
     ]);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable("leituras_metereologicas");
+    await queryInterface.dropTable("leituras_meteorologicas");
   },
 };

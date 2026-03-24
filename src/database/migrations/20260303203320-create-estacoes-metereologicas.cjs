@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("estacoes_metereologicas", {
+    await queryInterface.createTable("estacoes_meteorologicas", {
       id: {
         type: Sequelize.INTEGER,
         primaryKey: true,
@@ -25,6 +25,12 @@ module.exports = {
         allowNull: false,
       },
 
+      status: {
+        type: Sequelize.ENUM("ATIVA", "INATIVA", "MANUTENCAO"),
+        allowNull: false,
+        defaultValue: "INATIVA",
+      },
+
       usuario_proprietario_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -42,16 +48,18 @@ module.exports = {
       criado_em: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
 
       atualizado_em: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
     });
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable("estacoes_metereologicas");
+    await queryInterface.dropTable("estacoes_meteorologicas");
   },
 };

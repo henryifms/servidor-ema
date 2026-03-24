@@ -11,8 +11,10 @@ interface AtributosLeitura {
   data_leitura: Date;
 }
 
-interface CriacaoLeituraAtributos
-  extends Optional<AtributosLeitura, "data_leitura" | "id"> {}
+interface CriacaoLeituraAtributos extends Optional<
+  AtributosLeitura,
+  "data_leitura" | "id"
+> {}
 
 class Leitura
   extends Model<AtributosLeitura, CriacaoLeituraAtributos>
@@ -43,7 +45,7 @@ class Leitura
       },
       {
         sequelize,
-        tableName: "leituras_metereologicas",
+        tableName: "leituras_meteorologicas",
         modelName: "Leitura",
         timestamps: false,
       }

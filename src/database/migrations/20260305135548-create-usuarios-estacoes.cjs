@@ -17,7 +17,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         primaryKey: true,
         references: {
-          model: "estacoes_metereologicas",
+          model: "estacoes_meteorologicas",
           key: "id",
         },
         onDelete: "CASCADE",

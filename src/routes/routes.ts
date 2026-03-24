@@ -136,7 +136,6 @@ ROTAS PROTEGIDAS (JWT)
 
 routes.use(authMiddleware);
 
-
 /**
  * @swagger
  * /usuarios/{id}:
@@ -181,7 +180,6 @@ routes.put("/usuarios/:id", usuarios.update);
  *         description: Usuario deletado
  */
 routes.delete("/usuarios/:id", usuarios.destroy);
-
 
 /**
  * @swagger

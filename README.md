@@ -26,10 +26,10 @@ docker compose run --rm migrate
 
 ## Scripts disponíveis
 
-| Script | Descrição |
-|---|---|
-| `yarn dev` | Inicia o servidor em modo desenvolvimento |
-| `yarn build` | Compila o TypeScript para `dist/` |
-| `yarn start` | Inicia o servidor compilado |
-| `yarn migrate` | Executa as migrações do banco |
-| `yarn migrate:undo` | Desfaz todas as migrações |
+| Script              | Descrição                                 |
+| ------------------- | ----------------------------------------- |
+| `yarn dev`          | Inicia o servidor em modo desenvolvimento |
+| `yarn build`        | Compila o TypeScript para `dist/`         |
+| `yarn start`        | Inicia o servidor compilado               |
+| `yarn migrate`      | Executa as migrações do banco             |
+| `yarn migrate:undo` | Desfaz todas as migrações                 |

@@ -23,7 +23,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "estacoes_metereologicas",
+          model: "estacoes_meteorologicas",
           key: "id",
         },
         onDelete: "CASCADE",

@@ -1,4 +1,10 @@
-import { Sequelize, DataTypes, Model, Optional, BelongsToManyHasAssociationMixin } from "sequelize";
+import {
+  Sequelize,
+  DataTypes,
+  Model,
+  Optional,
+  BelongsToManyHasAssociationMixin,
+} from "sequelize";
 import Usuario from "./Usuario.js";
 
 interface Localizacao {
@@ -9,14 +15,17 @@ interface Localizacao {
 interface AtributosEstacao {
   id?: number;
   nome: string;
-  endereco: string;
   localizacao: Localizacao;
+  endereco: string;
+  status: string;
   api_key: string;
   usuario_proprietario_id: number;
 }
 
-interface CriacaoEstacaoAtributos
-  extends Optional<AtributosEstacao, "api_key" | "id"> {}
+interface CriacaoEstacaoAtributos extends Optional<
+  AtributosEstacao,
+  "api_key" | "id"
+> {}
 
 class Estacao
   extends Model<AtributosEstacao, CriacaoEstacaoAtributos>
@@ -26,6 +35,7 @@ class Estacao
   declare nome: string;
   declare localizacao: Localizacao;
   declare endereco: string;
+  declare status: string;
   declare api_key: string;
   declare addEquipe: BelongsToManyHasAssociationMixin<Usuario, number>;
   declare usuario_proprietario_id: number;
@@ -37,12 +47,13 @@ class Estacao
         nome: DataTypes.STRING,
         localizacao: DataTypes.GEOGRAPHY("POINT", 4326),
         endereco: DataTypes.STRING,
+        status: DataTypes.ENUM("ATIVA", "INATIVA", "MANUTENCAO"),
         api_key: DataTypes.STRING,
         usuario_proprietario_id: DataTypes.INTEGER,
       },
       {
         sequelize,
-        tableName: "estacoes_metereologicas",
+        tableName: "estacoes_meteorologicas",
         modelName: "Estacao",
         underscored: true,
         createdAt: "criado_em",

@@ -11,7 +11,7 @@ class ResetPasswordJob {
   }
 
   async handle({ data }: { data: ResetPasswordData }) {
-    const { email, token } = data
+    const { email, token } = data;
 
     const url = `http://localhost:3000/password/reset?token=${token}`;
 

@@ -17,7 +17,7 @@
     "seed": "yarn sequelize db:seed:all",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prettier": "prettier . --write",
+    "format": "prettier --write .",
     "queue": "tsx watch src/queue.ts"
   },
   "dependencies": {
