@@ -1,4 +1,4 @@
-import { WhereOptions, Order } from "sequelize";
+import { WhereOptions, Order, Op } from "sequelize";
 import * as Yup from "yup";
 import { Request, Response } from "express";
 import database from "../../database/index.js";
@@ -11,6 +11,8 @@ import Usuario from "../models/Usuario.js";
 import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
 import construirIntervaloData from "../utils/construirIntervaloData.js";
 import construirOrdenacao from "../utils/construirOrdenacao.js";
+import adicionarFiltroGeografico from "../utils/adicionarFiltroGeografico.js";
+import adicionarFiltroStatus from "../utils/adicionarFiltroStatus.js";
 import { processarLocalizacao } from "../../lib/geolocalizacao.js";
 
 interface Params {
@@ -19,6 +21,8 @@ interface Params {
 
 interface Query {
   nome?: string;
+  status?: string;
+  endereco?: string;
   criadoAntes?: string;
   criadoDepois?: string;
   atualizadoAntes?: string;
@@ -34,6 +38,8 @@ class EstacoesController {
   async index(req: Request<object, object, object, Query>, res: Response) {
     const {
       nome,
+      status,
+      endereco,
       criadoAntes,
       criadoDepois,
       atualizadoAntes,
@@ -44,20 +50,32 @@ class EstacoesController {
     const page = Number(req.query.page) || 1;
     const limit = Math.min(Number(req.query.limit) || 25, 100);
 
-    const where: WhereOptions<any> = {};
+    const where: WhereOptions<Estacao> = {};
     const order: Order = construirOrdenacao(sort);
 
     adicionarFiltroLike(where, "nome", nome);
+    adicionarFiltroLike(where, "endereco", endereco);
 
     const criado = construirIntervaloData(criadoAntes, criadoDepois);
-    if (criado) (where as any).criado_em = criado;
+    if (criado) {
+      Object.assign(where, { criado_em: criado });
+    }
 
     const atualizado = construirIntervaloData(
       atualizadoAntes,
       atualizadoDepois
     );
+    if (atualizado) {
+      Object.assign(where, { atualizado_em: atualizado });
+    }
 
-    if (atualizado) (where as any).atualizado_em = atualizado;
+    try {
+      adicionarFiltroStatus(where, status, STATUS);
+    } catch {
+      return res.status(400).json({ erro: "Status inválido" });
+    }
+
+    adicionarFiltroGeografico(where, req.query);
 
     const estacoes = await Estacao.findAll({
       where,
@@ -242,17 +260,13 @@ class EstacoesController {
 
     if (validated.nome) updateData.nome = validated.nome;
 
-    if (validated.status)
-      updateData.status = validated.status.toUpperCase();
+    if (validated.status) updateData.status = validated.status.toUpperCase();
 
     if (validated.endereco || validated.localizacao) {
       const data = await processarLocalizacao({
         endereco: validated.endereco,
         coordinates: validated.localizacao
-          ? [
-              validated.localizacao.longitude,
-              validated.localizacao.latitude,
-            ]
+          ? [validated.localizacao.longitude, validated.localizacao.latitude]
           : undefined,
       });
 
@@ -280,4 +294,3 @@ class EstacoesController {
 }
 
 export default new EstacoesController();
-
