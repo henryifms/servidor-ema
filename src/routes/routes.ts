@@ -6,7 +6,7 @@ import { verificarProprietario } from "../app/middlewares/verificarProprietario.
 
 import sessions from "../app/controllers/SessionsController.js";
 import usuarios from "../app/controllers/UsuariosController.js";
-import estacoes from "../app/controllers/EstacoesController";
+import estacoes from "../app/controllers/EstacoesController.js";
 import leituras from "../app/controllers/LeiturasController.js";
 import password from "../app/controllers/PasswordController.js";
 import convites from "../app/controllers/ConvitesController.js";

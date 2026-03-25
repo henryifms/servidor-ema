@@ -137,7 +137,9 @@ class EstacoesController {
           localizacao: Yup.object({
             latitude: Yup.number().min(-90).max(90),
             longitude: Yup.number().min(-180).max(180),
-          }).nullable(),
+          })
+            .nullable()
+            .notRequired(),
 
           status: Yup.string()
             .transform((v) => v?.toUpperCase())
@@ -172,9 +174,14 @@ class EstacoesController {
 
       const apiKey = crypto.randomUUID();
 
+      const hasCoords =
+        localizacao &&
+        typeof localizacao.latitude === "number" &&
+        typeof localizacao.longitude === "number";
+
       const data = await processarLocalizacao({
         endereco,
-        coordinates: localizacao
+        coordinates: hasCoords
           ? [localizacao.longitude, localizacao.latitude]
           : undefined,
       });
@@ -183,6 +190,7 @@ class EstacoesController {
         await transaction.rollback();
         return res.status(401).json({ erro: "Não autenticado." });
       }
+      console.log("COORDINATES:", data.coordinates);
 
       const novaEstacao = await Estacao.create(
         {
@@ -190,10 +198,9 @@ class EstacoesController {
           api_key: apiKey,
           usuario_proprietario_id: Number(req.userId),
           endereco: data.endereco,
-          localizacao: {
-            type: "Point",
-            coordinates: data.coordinates,
-          },
+          localizacao: database.connection.literal(
+            `ST_SetSRID(ST_MakePoint(${data.coordinates[0]}, ${data.coordinates[1]}), 4326)::geography`
+          ),
           status: status || "INATIVA",
         },
         { transaction }

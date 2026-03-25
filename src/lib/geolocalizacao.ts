@@ -12,6 +12,12 @@ export async function geocodeEndereco(endereco: string) {
 
   if (!data.length) throw new Error("Endereço não encontrado");
 
+  console.log("RAW ", data[0]);
+  console.log("PARSED", {
+    lat: parseFloat(data[0].lat),
+    lng: parseFloat(data[0].lon),
+  });
+
   return {
     lat: parseFloat(data[0].lat),
     lng: parseFloat(data[0].lon),
@@ -52,6 +58,7 @@ export async function processarLocalizacao({ endereco, coordinates }: any) {
       throw new Error("Endereço e coordenadas não coincidem");
     }
 
+    console.log("GEO RESULT:", geo);
     return {
       endereco,
       coordinates,
@@ -60,6 +67,7 @@ export async function processarLocalizacao({ endereco, coordinates }: any) {
 
   if (endereco) {
     const geo = await geocodeEndereco(endereco);
+    console.log("GEO RESULT:", geo);
 
     return {
       endereco,
