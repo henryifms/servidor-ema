@@ -18,6 +18,11 @@ module.exports = {
           nome: "Admin",
           email,
           password_hash: await bcrypt.hash(senha, 8),
+
+          email_confirmado: true,
+          email_confirmacao_token: null,
+          aprovado: true,
+
           criado_em: new Date(),
           atualizado_em: new Date(),
         },
@@ -27,7 +32,7 @@ module.exports = {
 
   async down(queryInterface) {
     await queryInterface.bulkDelete("usuarios", {
-      email: "admin@email.com",
+      email: process.env.ADMIN_EMAIL,
     });
   },
 };

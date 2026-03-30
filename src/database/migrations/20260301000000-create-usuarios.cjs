@@ -26,6 +26,22 @@ module.exports = {
         allowNull: false,
       },
 
+      email_confirmado: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+
+      email_confirmacao_token: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        unique: true,
+      },
+
+      aprovado: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+      },
+
       criado_em: {
         type: Sequelize.DATE,
         allowNull: false,

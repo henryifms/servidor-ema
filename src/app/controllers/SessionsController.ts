@@ -20,6 +20,19 @@ class SessionsController {
       return res.status(401).json({ erro: "Senha incorreta." });
     }
 
+    if (!usuario.email_confirmado) {
+      console.log(usuario.email_confirmado);
+      return res.status(401).json({
+        erro: "Confirme seu email antes de acessar.",
+      });
+    }
+
+    if (!usuario.aprovado) {
+      return res.status(401).json({
+        erro: "Aguardando aprovação do administrador.",
+      });
+    }
+
     const { id, nome } = usuario;
 
     await Queue.add(WelcomeToBackJob.key, { nome, email });

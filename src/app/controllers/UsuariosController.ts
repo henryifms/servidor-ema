@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import crypto from "crypto";
 import { WhereOptions } from "sequelize";
 import * as Yup from "yup";
 
@@ -11,6 +12,8 @@ import construirOrdenacao from "../utils/construirOrdenacao.js";
 
 import Queue from "../../lib/Queue.js";
 import WelcomeEmailJob from "../jobs/WelcomeEmailJob.js";
+import ConfirmarEmailJob from "../jobs/ConfirmarEmailJob.js";
+import NovoUsuarioAdminJob from "../jobs/NovoUsuarioAdminJob.js";
 
 interface UsuarioIdParam {
   id: string;
@@ -126,11 +129,25 @@ class UsuariosController {
       });
     }
 
-    const novoUsuario = await Usuario.create(body);
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const novoUsuario = await Usuario.create({
+      ...body,
+      email_confirmado: false,
+      aprovado: false,
+      email_confirmacao_token: token,
+    });
 
     const { id, nome, email } = novoUsuario;
 
+    await Queue.add(ConfirmarEmailJob.key, {
+      nome,
+      email,
+      token,
+    });
+
     await Queue.add(WelcomeEmailJob.key, { nome, email });
+
     return res.status(201).json({ id, nome, email });
   }
 
@@ -167,6 +184,44 @@ class UsuariosController {
     await usuario.destroy();
 
     return res.json();
+  }
+
+  async confirmarEmail(req: Request, res: Response) {
+    const { token } = req.query;
+
+    const usuario = await Usuario.findOne({
+      where: { email_confirmacao_token: token },
+    });
+
+    if (!usuario) {
+      return res.status(400).json({ erro: "Token inválido" });
+    }
+
+    await usuario.update({
+      email_confirmado: true,
+      email_confirmacao_token: null,
+    });
+
+    await Queue.add(NovoUsuarioAdminJob.key, {
+      nome: usuario.nome,
+      email: usuario.email,
+      userId: usuario.id,
+    });
+
+    return res.redirect("http://localhost:5173/projeto-ema/#/login");
+  }
+  async aprovar(req: Request, res: Response) {
+    const usuario = await Usuario.findByPk(req.params.id);
+
+    if (!usuario) {
+      return res.status(404).json();
+    }
+
+    await usuario.update({
+      aprovado: true,
+    });
+
+    return res.json({ mensagem: "Usuário aprovado!" });
   }
 }
 

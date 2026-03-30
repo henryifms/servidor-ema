@@ -7,6 +7,8 @@ import ResetPasswordJob from "../app/jobs/ResetPasswordJob.js";
 import SaveLeituraJob from "../app/jobs/SaveLeituraJob.js";
 import NotificarProprietarioJob from "../app/jobs/NotificarProprietarioJob.js";
 import WelcomeToBackJob from "../app/jobs/WelcomeToBackJob.js";
+import ConfirmarEmailJob from "../app/jobs/ConfirmarEmailJob.js";
+import NovoUsuarioAdminJob from "../app/jobs/NovoUsuarioAdminJob.js";
 
 const jobs = [
   WelcomeEmailJob,
@@ -14,6 +16,8 @@ const jobs = [
   SaveLeituraJob,
   ResetPasswordJob,
   NotificarProprietarioJob,
+  ConfirmarEmailJob,
+  NovoUsuarioAdminJob,
 ];
 
 class Queue {

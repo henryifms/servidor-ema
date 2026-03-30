@@ -41,7 +41,7 @@ AUTH
  *       200:
  *         description: Lista de usuários
  */
-routes.get("/usuarios", usuarios.index);
+routes.get("/usuarios", authMiddleware, usuarios.index);
 
 routes.get("/estacoes", estacoes.index);
 
@@ -69,9 +69,7 @@ routes.get("/estacoes/:id", estacoes.show);
  */
 routes.post("/login", sessions.create);
 
-/*
-USUÁRIOS
-*/
+routes.get("/confirmar-email", usuarios.confirmarEmail);
 
 /**
  * @swagger
@@ -105,6 +103,14 @@ USUÁRIOS
  */
 routes.post("/usuarios", usuarios.create);
 
+routes.get("/usuarios/:id/aprovar", usuarios.aprovar);
+
+routes.use(authMiddleware);
+
+/*
+   USUÁRIOS
+   */
+
 // REDEFINIÇÂO DE SENHA
 
 /**
@@ -133,8 +139,6 @@ routes.post("/password/reset", password.reset);
 /*
 ROTAS PROTEGIDAS (JWT)
 */
-
-routes.use(authMiddleware);
 
 /**
  * @swagger

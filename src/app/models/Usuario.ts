@@ -13,8 +13,14 @@ interface AtributosUsuario {
   email: string;
   password?: string;
   password_hash: string;
+
+  email_confirmado?: boolean;
+  email_confirmacao_token?: string | null;
+
   criado_em?: Date;
   atualizado_em?: Date;
+
+  aprovado?: boolean;
 }
 
 class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
@@ -23,6 +29,9 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
   declare email: string;
   declare password?: string;
   declare password_hash: string;
+  declare email_confirmado?: boolean;
+  declare email_confirmacao_token?: string | null;
+  declare aprovado?: boolean;
   declare readonly criado_em: Date;
   declare readonly atualizado_em: Date;
   declare addEstacao: BelongsToManyAddAssociationMixin<Estacao, number>;
@@ -34,6 +43,19 @@ class Usuario extends Model<AtributosUsuario> implements AtributosUsuario {
         email: DataTypes.STRING,
         password: DataTypes.VIRTUAL,
         password_hash: DataTypes.STRING,
+        email_confirmado: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        },
+
+        email_confirmacao_token: {
+          type: DataTypes.STRING,
+          allowNull: true,
+        },
+        aprovado: {
+          type: Sequelize.BOOLEAN,
+          defaultValue: false,
+        },
       },
       {
         sequelize,
