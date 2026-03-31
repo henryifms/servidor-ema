@@ -13,6 +13,9 @@ class ConfirmarEmailJob {
     await Mail.send({
       to: email,
       subject: "Confirme seu e-mail",
+      headers: {
+        "ngrok-skip-browser-warning": "3000",
+      },
       html: `
         <h1>Olá ${nome} </h1>
         <p>Clique no botão abaixo para confirmar sua conta:</p>
