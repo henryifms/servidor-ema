@@ -1,4 +1,5 @@
 import Mail from "../../lib/Mail.js";
+import "dotenv/config";
 
 class ConfirmarEmailJob {
   get key() {
@@ -8,7 +9,7 @@ class ConfirmarEmailJob {
   async handle({ data }) {
     const { nome, email, token } = data;
 
-    const link = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/confirmar-email?token=${token}`;
+    const link = `${process.env.URL}/confirmar-email?token=${token}`;
 
     await Mail.send({
       to: email,

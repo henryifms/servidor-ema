@@ -1,4 +1,5 @@
 import Mail from "../../lib/Mail.js";
+import "dotenv/config";
 
 interface ResetPasswordData {
   email: string;
@@ -13,7 +14,7 @@ class ResetPasswordJob {
   async handle({ data }: { data: ResetPasswordData }) {
     const { email, token } = data;
 
-    const url = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/password/reset?token=${token}`;
+    const url = `${process.env.URL}/password/reset?token=${token}`;
 
     await Mail.send({
       to: email,

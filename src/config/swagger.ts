@@ -1,5 +1,6 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerSpec from "./config/swagger.js";
+import "dotenv/config";
 
 const options = {
   definition: {
@@ -11,7 +12,7 @@ const options = {
     },
     servers: [
       {
-        url: "https://suspensive-scarabaeoid-pattie.ngrok-free.dev",
+        url: process.env.URL,
       },
     ],
   },

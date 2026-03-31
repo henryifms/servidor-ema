@@ -1,4 +1,5 @@
 import Mail from "../../lib/Mail.js";
+import "dotenv/config";
 
 class NovoUsuarioAdminJob {
   get key() {
@@ -8,7 +9,7 @@ class NovoUsuarioAdminJob {
   async handle({ data }) {
     const { nome, email, userId } = data;
 
-    const link = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/usuarios/${userId}/aprovar`;
+    const link = `${process.env.URL}/usuarios/${userId}/aprovar`;
 
     await Mail.send({
       to: process.env.ADMIN_EMAIL,
