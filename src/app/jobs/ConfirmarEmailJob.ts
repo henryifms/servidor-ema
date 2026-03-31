@@ -8,7 +8,7 @@ class ConfirmarEmailJob {
   async handle({ data }) {
     const { nome, email, token } = data;
 
-    const link = `http://localhost:3000/confirmar-email?token=${token}`;
+    const link = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/confirmar-email?token=${token}`;
 
     await Mail.send({
       to: email,

@@ -208,7 +208,7 @@ class UsuariosController {
       userId: usuario.id,
     });
 
-    return res.redirect("http://localhost:5173/projeto-ema/#/login");
+    return res.redirect("https://henryifms.github.io/projeto-ema/#/login");
   }
   async aprovar(req: Request, res: Response) {
     const usuario = await Usuario.findByPk(req.params.id);
