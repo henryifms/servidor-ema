@@ -13,7 +13,7 @@ class ResetPasswordJob {
   async handle({ data }: { data: ResetPasswordData }) {
     const { email, token } = data;
 
-    const url = `http://localhost:3000/password/reset?token=${token}`;
+    const url = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/password/reset?token=${token}`;
 
     await Mail.send({
       to: email,

@@ -24,6 +24,9 @@ class App {
 
   routes() {
     this.server.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    this.server.get("/docs.json", (req, res) => {
+      res.json(swaggerSpec);
+    });
     this.server.use(routes);
   }
 

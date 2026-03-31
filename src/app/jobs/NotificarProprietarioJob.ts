@@ -25,13 +25,13 @@ class NotificarProprietarioJob {
       <p>${usuarioSolicitante.nome} solicitou acesso à estação ${estacao.nome}</p>
 
       <p>
-        <a href="http://localhost:3000/convites/${token}/aceitar">
+        <a href="https://suspensive-scarabaeoid-pattie.ngrok-free.dev/convites/${token}/aceitar">
           Aceitar acesso: 
         </a>
       </p>
 
       <p>
-        <a href="http://localhost:3000/convites/${token}/rejeitar">
+        <a href="https://suspensive-scarabaeoid-pattie.ngrok-free.dev/convites/${token}/rejeitar">
           Rejeitar acesso: 
         </a>
       </p>

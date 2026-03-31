@@ -8,7 +8,7 @@ class NovoUsuarioAdminJob {
   async handle({ data }) {
     const { nome, email, userId } = data;
 
-    const link = `http://localhost:3000/usuarios/${userId}/aprovar`;
+    const link = `https://suspensive-scarabaeoid-pattie.ngrok-free.dev/usuarios/${userId}/aprovar`;
 
     await Mail.send({
       to: process.env.ADMIN_EMAIL,
