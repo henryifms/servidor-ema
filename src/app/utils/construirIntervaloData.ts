@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import { parseISO } from "date-fns";
+import { parseISO, isValid } from "date-fns";
 
 export default function construirIntervaloData(
   antes?: string,
@@ -7,10 +7,20 @@ export default function construirIntervaloData(
 ) {
   if (!antes && !depois) return null;
 
-  const intervalo: Record<symbol, Date> = {};
+  const intervalo: any = {}; // Use any aqui ou Record<symbol, Date>
 
-  if (antes) intervalo[Op.lte] = parseISO(antes);
-  if (depois) intervalo[Op.gte] = parseISO(depois);
+  if (antes) {
+    const dataAntes = parseISO(antes);
+    if (isValid(dataAntes)) intervalo[Op.lte] = dataAntes;
+  }
 
-  return intervalo;
+  if (depois) {
+    const dataDepois = parseISO(depois);
+    if (isValid(dataDepois)) intervalo[Op.gte] = dataDepois;
+  }
+
+  return Object.keys(intervalo).length ||
+    Object.getOwnPropertySymbols(intervalo).length
+    ? intervalo
+    : null;
 }

@@ -29,8 +29,8 @@ const routes = Router();
  */
 
 routes.get("/estacoes/:estacaoId/leituras", leituras.index);
-routes.get("/estacoes/:estacaoId/leituras/:id", leituras.show);
 routes.get("/estacoes/:estacaoId/leituras/ultima", leituras.ultima);
+routes.get("/estacoes/:estacaoId/leituras/:id", leituras.show);
 
 /**
  * @swagger

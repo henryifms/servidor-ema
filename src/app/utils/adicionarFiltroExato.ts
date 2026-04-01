@@ -10,8 +10,10 @@ export default function adicionarFiltroExato(
   const numero = Number(valor);
 
   if (!Number.isNaN(numero)) {
-    (where as Record<string, any>)[campo] = {
-      [Op.eq]: numero,
-    };
+    // Usar (where as any) é o jeito mais rápido,
+    // mas para ser correto:
+    Object.assign(where, {
+      [campo]: { [Op.eq]: numero },
+    });
   }
 }
