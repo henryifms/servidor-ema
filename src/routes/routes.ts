@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import usuariosRoutes from "./usuarios.routes.js";
-import estacoesRoutes from "./estacoes.routes.js";
+import estacoesRoutes from "./estacoes.routes";
 import authRoutes from "./auth.routes.js";
 import leiturasRoutes from "./leituras.routes.js";
 import convitesRoutes from "./convites.routes.js";

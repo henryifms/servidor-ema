@@ -39,6 +39,7 @@ routes.get("/estacoes", estacoes.index);
  *         description: Estação encontrada
  */
 
+routes.get("/estacoes/maisProxima", estacoes.distEstacao);
 routes.get("/estacoes/:id", estacoes.show);
 
 /**

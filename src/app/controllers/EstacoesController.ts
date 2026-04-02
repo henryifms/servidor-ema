@@ -14,6 +14,7 @@ import construirOrdenacao from "../utils/construirOrdenacao.js";
 import adicionarFiltroGeografico from "../utils/adicionarFiltroGeografico.js";
 import adicionarFiltroStatus from "../utils/adicionarFiltroStatus.js";
 import { processarLocalizacao } from "../../lib/geolocalizacao.js";
+import calcularDistancia from "../utils/calcularDistancia.js";
 
 interface Params {
   id: string;
@@ -297,6 +298,35 @@ class EstacoesController {
     await estacao.destroy();
 
     return res.json();
+  }
+
+  async distEstacao(req: Request, res: Response) {
+    try {
+      const schema = Yup.object().shape({
+        localizacao: Yup.object({
+          latitude: Yup.number().required().min(-90).max(90),
+          longitude: Yup.number().required().min(-180).max(180),
+        }).required(),
+      });
+
+      const validado = await schema.validate(req.body, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+
+      const { localizacao } = validado;
+
+      const estacao = await calcularDistancia(localizacao);
+
+      if (!estacao) {
+        return res.status(404).json({ error: "Nenhuma estação encontrada" });
+      }
+
+      return res.json(estacao);
+    } catch (err) {
+      console.error("Erro: ", err);
+      return res.status(400).json({ error: "Erro ao calcular distância" });
+    }
   }
 }
 
