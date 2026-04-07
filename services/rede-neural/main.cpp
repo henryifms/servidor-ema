@@ -1,6 +1,8 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <iostream>
+#include <unistd.h>
 
 class NeuralNetwork {
 public:
@@ -9,7 +11,6 @@ public:
     double learning_rate = 0.1;
 
     NeuralNetwork(int input_size) {
-        // Inicializa pesos aleatórios simples
         weights.resize(input_size, 0.5);
         bias = 0.1;
     }
@@ -25,16 +26,19 @@ public:
         }
         return sigmoid(sum);
     }
-
-    // Aqui você adicionaria o método de 'train' (Backpropagation)
 };
 
 int main() {
-    NeuralNetwork nn(2); // Exemplo: 2 entradas
+    NeuralNetwork nn(2);
     std::vector<double> input = {1.0, 0.5};
-    
-    std::cout << "Resultado da Predicao: " << nn.predict(input) << std::endl;
-    
+
+    while (true) {
+        std::cout << "Resultado da Predicao: "
+                  << nn.predict(input)
+                  << std::endl;
+
+        sleep(2); // ⚠️ aqui é em SEGUNDOS, não ms
+    }
+
     return 0;
 }
-

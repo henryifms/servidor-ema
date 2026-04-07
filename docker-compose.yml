@@ -1,11 +1,11 @@
 services:
   app:
-    build: .
+    build: ./services/api
     container_name: servidor-ema
     ports:
       - "3000:3000"
     volumes:
-      - .:/app
+      - ./services/api:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
@@ -19,7 +19,7 @@ services:
       - .env
 
   migrate:
-    build: .
+    build: ./services/api
     command: sh -c "until pg_isready -h db -p 5432 -U ${DB_USER}; do sleep 2; done && yarn migrate && yarn seed"
     depends_on:
       db:
@@ -28,11 +28,11 @@ services:
       - .env
 
   worker:
-    build: .
+    build: ./services/api
     container_name: servidor-ema-worker
     command: yarn queue
     volumes:
-      - .:/app
+      - ./services/api:/app
       - /app/node_modules
     depends_on:
       - redis
@@ -52,7 +52,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./docker/postgis-init.sql:/docker-entrypoint-initdb.d/postgis-init.sql
+      - ./services/api/docker/postgis-init.sql:/docker-entrypoint-initdb.d/postgis-init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -63,6 +63,12 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+
+  trainer:
+    build: ./services/rede-neural
+    container_name: ema-trainer
+    depends_on:
+      - db
 
 volumes:
   pgdata:
