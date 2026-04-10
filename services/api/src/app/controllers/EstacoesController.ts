@@ -10,7 +10,7 @@ import Usuario from "../models/Usuario.js";
 
 import adicionarFiltroLike from "../utils/adicionarFiltroLike.js";
 import construirIntervaloData from "../utils/construirIntervaloData.js";
-import construirOrdenacao from "../utils/construirOrdenacao.js";
+import construirOrdenacao from "../utils/construirOrdenacao";
 import adicionarFiltroGeografico from "../utils/adicionarFiltroGeografico.js";
 import adicionarFiltroStatus from "../utils/adicionarFiltroStatus.js";
 import { processarLocalizacao } from "../../lib/geolocalizacao.js";
@@ -36,70 +36,84 @@ interface Query {
 const STATUS = ["ATIVA", "INATIVA", "MANUTENCAO"] as const;
 
 class EstacoesController {
-  async index(req: Request<object, object, object, Query>, res: Response) {
-    const {
-      nome,
-      status,
-      endereco,
-      criadoAntes,
-      criadoDepois,
-      atualizadoAntes,
-      atualizadoDepois,
-      sort,
-    } = req.query;
-
-    const page = Number(req.query.page) || 1;
-    const limit = Math.min(Number(req.query.limit) || 25, 100);
-
-    const where: WhereOptions<Estacao> = {};
-    const order: Order = construirOrdenacao(sort);
-
-    adicionarFiltroLike(where, "nome", nome);
-    adicionarFiltroLike(where, "endereco", endereco);
-
-    const criado = construirIntervaloData(criadoAntes, criadoDepois);
-    if (criado) {
-      Object.assign(where, { criado_em: criado });
-    }
-
-    const atualizado = construirIntervaloData(
-      atualizadoAntes,
-      atualizadoDepois
-    );
-    if (atualizado) {
-      Object.assign(where, { atualizado_em: atualizado });
-    }
-
+  async index(req: Request, res: Response) {
     try {
-      adicionarFiltroStatus(where, status, STATUS);
-    } catch {
-      return res.status(400).json({ erro: "Status inválido" });
+      const schema = Yup.object({
+        nome: Yup.string(),
+        endereco: Yup.string(),
+        status: Yup.string().oneOf(STATUS as any),
+        criadoAntes: Yup.date(),
+        criadoDepois: Yup.date(),
+        atualizadoAntes: Yup.date(),
+        atualizadoDepois: Yup.date(),
+        sort: Yup.string(),
+        page: Yup.number().min(1),
+        limit: Yup.number().min(1).max(100),
+        latitude: Yup.number().min(-90).max(90),
+        longitude: Yup.number().min(-180).max(180),
+        raio: Yup.number().min(1),
+      });
+
+      const query = await schema.validate(req.query, {
+        stripUnknown: true,
+      });
+
+      const page = Number(query.page) || 1;
+      const limit = Number(query.limit) || 25;
+
+      const where: WhereOptions<Estacao> = {
+        [Op.and]: [],
+      };
+
+      adicionarFiltroLike(where, "nome", query.nome);
+      adicionarFiltroLike(where, "endereco", query.endereco);
+
+      const criado = construirIntervaloData(
+        query.criadoAntes,
+        query.criadoDepois
+      );
+      if (criado) (where[Op.and] as any).push({ criado_em: criado });
+
+      const atualizado = construirIntervaloData(
+        query.atualizadoAntes,
+        query.atualizadoDepois
+      );
+      if (atualizado)
+        (where[Op.and] as any).push({ atualizado_em: atualizado });
+
+      if (query.status) {
+        adicionarFiltroStatus(where, query.status, STATUS);
+      }
+
+      if (query.latitude && query.longitude && query.raio) {
+        adicionarFiltroGeografico(where, query);
+      }
+
+      const estacoes = await Estacao.findAll({
+        where,
+        include: [
+          { model: Leitura, as: "leituras", attributes: ["id", "estacao_id"] },
+          {
+            model: Usuario,
+            as: "proprietario",
+            attributes: ["id", "nome", "email"],
+          },
+          {
+            model: Usuario,
+            as: "equipe",
+            attributes: ["id", "nome", "email"],
+            through: { attributes: ["papel"] },
+          },
+        ],
+        order: construirOrdenacao(query.sort),
+        limit,
+        offset: (page - 1) * limit,
+      });
+
+      return res.json(estacoes);
+    } catch (err: any) {
+      return res.status(400).json({ erro: err.message });
     }
-
-    adicionarFiltroGeografico(where, req.query);
-
-    const estacoes = await Estacao.findAll({
-      where,
-      include: [
-        { model: Leitura, as: "leituras", attributes: ["id", "estacao_id"] },
-        {
-          model: Usuario,
-          as: "proprietario",
-          attributes: ["id", "nome", "email"],
-        },
-        {
-          model: Usuario,
-          as: "equipe",
-          attributes: ["id", "nome", "email"],
-          through: { attributes: ["papel"] },
-        },
-      ],
-      order,
-      limit,
-      offset: (page - 1) * limit,
-    });
-
-    return res.json(estacoes);
   }
 
   async show(req: Request<Params>, res: Response) {
@@ -238,51 +252,65 @@ class EstacoesController {
 
     const schema = Yup.object().shape({
       nome: Yup.string(),
-
       endereco: Yup.string(),
-
       status: Yup.string()
         .transform((v) => v?.toUpperCase())
         .oneOf(STATUS),
-
       localizacao: Yup.object({
         longitude: Yup.number().min(-180).max(180),
         latitude: Yup.number().min(-90).max(90),
       }),
     });
 
+    console.log("URL:", req.originalUrl);
+    console.log("PARAMS:", req.params);
     const validated = await schema.validate(req.body, {
       abortEarly: false,
       stripUnknown: true,
     });
 
-    const updateData: Partial<{
-      nome: string;
-      endereco: string;
-      status: string;
-      localizacao: {
-        type: "Point";
-        coordinates: [number, number];
-      };
-    }> = {};
+    const updateData: any = {};
 
-    if (validated.nome) updateData.nome = validated.nome;
+    if (validated.nome !== undefined) {
+      updateData.nome = validated.nome;
+    }
 
-    if (validated.status) updateData.status = validated.status.toUpperCase();
+    if (validated.status !== undefined) {
+      updateData.status = validated.status;
+    }
 
-    if (validated.endereco || validated.localizacao) {
+    // ✅ CORREÇÃO REAL
+    const hasEndereco =
+      typeof validated.endereco === "string" &&
+      validated.endereco.trim().length > 0;
+
+    const hasCoords =
+      validated.localizacao &&
+      typeof validated.localizacao.latitude === "number" &&
+      typeof validated.localizacao.longitude === "number";
+
+    if (hasEndereco || hasCoords) {
       const data = await processarLocalizacao({
-        endereco: validated.endereco,
-        coordinates: validated.localizacao
+        endereco: hasEndereco ? validated.endereco : undefined,
+        coordinates: hasCoords
           ? [validated.localizacao.longitude, validated.localizacao.latitude]
           : undefined,
       });
 
-      updateData.endereco = data.endereco;
-      updateData.localizacao = {
-        type: "Point",
-        coordinates: data.coordinates,
-      };
+      if (
+        data.coordinates &&
+        data.coordinates.length === 2 &&
+        !data.coordinates.some((c) => c == null)
+      ) {
+        updateData.localizacao = {
+          type: "Point",
+          coordinates: data.coordinates,
+        };
+      }
+
+      if (data.endereco) {
+        updateData.endereco = data.endereco;
+      }
     }
 
     await estacao.update(updateData);

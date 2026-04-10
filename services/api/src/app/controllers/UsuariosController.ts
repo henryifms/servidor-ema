@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { WhereOptions } from "sequelize";
+import { WhereOptions, Op } from "sequelize";
 import * as Yup from "yup";
 
 import Usuario from "../models/Usuario.js";
@@ -37,51 +37,69 @@ interface Query {
 }
 
 class UsuariosController {
-  async index(req: Request<object, object, object, Query>, res: Response) {
-    const {
-      nome,
-      email,
-      criadoAntes,
-      criadoDepois,
-      atualizadoAntes,
-      atualizadoDepois,
-      sort,
-    } = req.query;
+  async index(req: Request, res: Response) {
+    try {
+      const schema = Yup.object({
+        nome: Yup.string(),
+        email: Yup.string(),
+        criadoAntes: Yup.date(),
+        criadoDepois: Yup.date(),
+        atualizadoAntes: Yup.date(),
+        atualizadoDepois: Yup.date(),
+        sort: Yup.string(),
+        page: Yup.number().min(1),
+        limit: Yup.number().min(1).max(100),
+      });
 
-    const page = Number(req.query.page) || 1;
-    const limit = Math.min(Number(req.query.limit) || 25, 100);
+      const query = await schema.validate(req.query, {
+        stripUnknown: true,
+      });
 
-    const where: WhereOptions = {};
+      const page = Number(query.page) || 1;
+      const limit = Number(query.limit) || 25;
 
-    adicionarFiltroLike(where, "nome", nome);
-    adicionarFiltroLike(where, "email", email);
+      const where: WhereOptions = {};
 
-    const criado = construirIntervaloData(criadoAntes, criadoDepois);
-    if (criado) (where as any).criado_em = criado;
+      const and: any[] = [];
 
-    const atualizado = construirIntervaloData(
-      atualizadoAntes,
-      atualizadoDepois
-    );
+      adicionarFiltroLike(and, "nome", query.nome);
+      adicionarFiltroLike(and, "email", query.email);
 
-    if (atualizado) (where as any).atualizado_em = atualizado;
+      const criado = construirIntervaloData(
+        query.criadoAntes,
+        query.criadoDepois
+      );
+      if (criado) and.push({ criado_em: criado });
 
-    const usuarios = await Usuario.findAll({
-      where,
-      attributes: ["id", "nome", "email"],
-      include: [
-        {
-          model: Estacao,
-          as: "estacoes",
-          attributes: ["id", "nome"],
-        },
-      ],
-      order: construirOrdenacao(sort),
-      limit,
-      offset: (page - 1) * limit,
-    });
+      const atualizado = construirIntervaloData(
+        query.atualizadoAntes,
+        query.atualizadoDepois
+      );
+      if (atualizado) and.push({ atualizado_em: atualizado });
 
-    return res.json(usuarios);
+      if (and.length) {
+        where[Op.and] = and;
+      }
+
+      const usuarios = await Usuario.findAll({
+        where,
+        attributes: ["id", "nome", "email"],
+        include: [
+          {
+            model: Estacao,
+            as: "estacoes",
+            attributes: ["id", "nome"],
+          },
+        ],
+        order: construirOrdenacao(query.sort),
+        limit,
+        offset: (page - 1) * limit,
+      });
+
+      return res.json(usuarios);
+    } catch (err: any) {
+      return res.status(400).json({ erro: err.message });
+    }
   }
 
   async show(req: Request<UsuarioIdParam>, res: Response) {

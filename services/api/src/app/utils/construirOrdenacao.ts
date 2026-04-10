@@ -6,6 +6,16 @@ export default function construirOrdenacao(sort?: string): Order {
   return sort.split(",").map((item) => {
     const [campo, direcao] = item.split(":");
 
-    return [campo, direcao?.toUpperCase() === "DESC" ? "DESC" : "ASC"];
+    if (!campo) {
+      throw new Error("Campo de ordenação inválido");
+    }
+
+    const dir = direcao?.toUpperCase();
+
+    if (dir !== "ASC" && dir !== "DESC") {
+      throw new Error(`Direção inválida para '${campo}': ${direcao}`);
+    }
+
+    return [campo, dir];
   });
 }

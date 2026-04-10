@@ -53,4 +53,3 @@ export default async function calcularDistancia(localizacao: Coordenada) {
 
   return estacaoMaisProxima;
 }
-

@@ -1,11 +1,15 @@
+import { Op } from "sequelize";
+
 export default function adicionarFiltroLike(
-  where: WhereOptions,
+  and: any[],
   campo: string,
   valor?: string
 ) {
   if (!valor) return;
 
-  Object.assign(where, {
-    [campo]: { [Op.iLike]: `%${valor}%` },
+  and.push({
+    [campo]: {
+      [Op.iLike]: `%${valor}%`,
+    },
   });
 }
