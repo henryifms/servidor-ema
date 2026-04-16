@@ -49,7 +49,7 @@ routes.get(
  *       200:
  *         description: Convite aceito
  */
-routes.post("/convites/:token/aceitar", auth, convites.aceitar);
-routes.post("/convites/:token/rejeitar", auth, convites.rejeitar);
+routes.get("/convites/:token/aceitar", auth, convites.aceitar);
+routes.get("/convites/:token/rejeitar", auth, convites.rejeitar);
 
 export default routes;
