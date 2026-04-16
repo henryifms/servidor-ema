@@ -1,5 +1,6 @@
 import { Router } from "express";
 import convites from "../app/controllers/ConvitesController.js";
+import auth from "../app/middlewares/auth.js";
 import { verificarProprietario } from "../app/middlewares/verificarProprietario.js";
 
 const routes = Router();
@@ -25,11 +26,11 @@ const routes = Router();
  *       200:
  *         description: Solicitação enviada
  */
-
-routes.post("/estacoes/:estacaoId/convites", convites.solicitar);
+routes.post("/estacoes/:estacaoId/convites", auth, convites.solicitar);
 
 routes.get(
   "/estacoes/:estacaoId/convites",
+  auth,
   verificarProprietario,
   convites.listar
 );
@@ -48,8 +49,7 @@ routes.get(
  *       200:
  *         description: Convite aceito
  */
-
-routes.post("/convites/:token/aceitar", convites.aceitar);
-routes.post("/convites/:token/rejeitar", convites.rejeitar);
+routes.post("/convites/:token/aceitar", auth, convites.aceitar);
+routes.post("/convites/:token/rejeitar", auth, convites.rejeitar);
 
 export default routes;
