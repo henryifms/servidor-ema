@@ -24,6 +24,12 @@ interface UsuarioEstacaoParams {
   estacaoId: string;
 }
 
+interface CaptchaResponse {
+  success: boolean;
+  hostname?: string;
+  "error-codes"?: string[];
+}
+
 interface Query {
   nome?: string;
   email?: string;
@@ -122,6 +128,25 @@ class UsuariosController {
 
   async create(req: Request, res: Response) {
     const { body } = req;
+    const { captchaToken } = body;
+
+    if (!captchaToken) {
+      return res.status(400).json({ erro: "Captcha obrigatório" });
+    }
+
+    const captchaData = await this.validarCaptcha(captchaToken);
+
+    if (!captchaData.success) {
+      return res.status(400).json({ erro: "Captcha inválido" });
+    }
+
+    if (!captchaData.success) {
+      return res.status(400).json({ erro: "Captcha inválido" });
+    }
+
+    // if (captchaData.hostname !== "localhost") {
+    //   return res.status(400).json({ erro: "Domínio inválido" });
+    // }
 
     const schema = Yup.object().shape({
       nome: Yup.string().required(),
@@ -240,6 +265,31 @@ class UsuariosController {
     });
 
     return res.json({ mensagem: "Usuário aprovado!" });
+  }
+
+  async validarCaptcha(
+    token: string
+  ): Promise<{ success: boolean; hostname?: string }> {
+    if (!token) return { success: false };
+
+    try {
+      const response = await fetch(
+        "https://www.google.com/recaptcha/api/siteverify",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `secret=${process.env.RECAPTCHA_SECRET}&response=${token}`,
+        }
+      );
+      const data = await response.json();
+      return {
+        success: data.success === true,
+        hostname: data.hostname,
+      };
+    } catch (error) {
+      console.error("Erro ao verificar captcha:", error);
+      return { success: false };
+    }
   }
 }
 

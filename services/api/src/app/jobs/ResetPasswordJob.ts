@@ -7,22 +7,28 @@ interface ResetPasswordData {
 }
 
 class ResetPasswordJob {
-  get key() {
+  get key(): string {
     return "ResetPasswordJob";
   }
 
-  async handle({ data }: { data: ResetPasswordData }) {
+  async handle({ data }: { data: ResetPasswordData }): Promise<void> {
     const { email, token } = data;
-
     const url = `${process.env.URL}/password/reset?token=${token}`;
 
     await Mail.send({
       to: email,
       subject: "Redefinição de senha",
       html: `
-        <p>Você solicitou redefinição de senha.</p>
-        <p>Clique no link abaixo:</p>
-        <a href="${url}">${url}</a>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <p>Você solicitou a redefinição de senha.</p>
+          <p>Clique no link abaixo para criar uma nova senha:</p>
+          <a href="${url}"
+             style="display: inline-block; padding: 10px 20px; background: #3b82f6; color: #fff; border-radius: 8px; text-decoration: none;">
+             Redefinir senha
+          </a>
+          <p style="margin-top: 20px;">Ou copie o link:</p>
+          <p style="word-break: break-all; background: #f3f4f6; padding: 10px; border-radius: 6px;">${url}</p>
+        </div>
       `,
     });
   }
