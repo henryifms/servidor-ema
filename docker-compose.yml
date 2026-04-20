@@ -1,14 +1,35 @@
 services:
+  # Nginx como Load Balancer e Proxy Reverso
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-load-balancer
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/html:/usr/share/nginx/html
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - app
+      - app2
+      - app3
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Múltiplas instâncias da aplicação
   app:
     build: ./services/api
-    container_name: servidor-ema
-    ports:
-      - "3000:3000"
+    container_name: servidor-ema-1
+    # ports: - "3000:3000"
     volumes:
       - ./services/api:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=1
     command: yarn dev
     depends_on:
       db:
@@ -17,6 +38,53 @@ services:
         condition: service_started
     env_file:
       - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  app2:
+    build: ./services/api
+    container_name: servidor-ema-2
+    volumes:
+      - ./services/api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=2
+    command: yarn dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  app3:
+    build: ./services/api
+    container_name: servidor-ema-3
+    volumes:
+      - ./services/api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - INSTANCE_ID=3
+    command: yarn dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    networks:
+      - app-network
+    restart: unless-stopped
 
   migrate:
     build: ./services/api
@@ -26,6 +94,8 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    networks:
+      - app-network
 
   worker:
     build: ./services/api
@@ -41,6 +111,9 @@ services:
       - NODE_ENV=development
     env_file:
       - .env
+    networks:
+      - app-network
+    restart: unless-stopped
 
   db:
     image: postgis/postgis:16-3.4
@@ -58,17 +131,30 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
+    restart: unless-stopped
 
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+    networks:
+      - app-network
+    restart: unless-stopped
 
   trainer:
     build: ./services/rede-neural
     container_name: ema-trainer
     depends_on:
       - db
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   pgdata:
